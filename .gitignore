@@ -1,6 +1,6 @@
 /target
 .DS_Store
 .idea
-*.bmp
+/*.bmp
 latitude.toml
 

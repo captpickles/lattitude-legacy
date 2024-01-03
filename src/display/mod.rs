@@ -2,10 +2,8 @@ use std::cmp::max;
 use std::env;
 use ab_glyph::{Font, PxScale};
 use bmp::Image;
-use bresenham::Bresenham;
 use chrono::{Datelike, DateTime, Days, Local, Timelike, TimeZone, Utc, Weekday};
 use glyph_brush_layout::{FontId, GlyphPositioner, HorizontalAlign, Layout, SectionGeometry, SectionText, VerticalAlign};
-use midpoint_circle::midpoint_circle;
 use crate::accuweather::daily_forecast::DailyForecast;
 use crate::accuweather::hourly_forecast::HourlyForecast;
 use crate::art::{aqi, arrow_down, arrow_level, arrow_small_down, arrow_small_up, arrow_up, logo, moon_full, moon_new, moon_first_quarter, sunrise, sunset, moon_waning_gibbous, moon_waxing_gibbous, moon_waning_crescent, moon_waxing_crescent, moon_third_quarter, weather, wind};
@@ -31,6 +29,39 @@ impl Display {
         Self {
             graphics: Graphics::new()
         }
+    }
+
+    #[cfg(feature = "linux-embedded-hal")]
+    pub fn paint(&self) {
+        use linux_embedded_hal::gpio_cdev::{Chip, LineRequestFlags};
+        use linux_embedded_hal::spidev::{SpiModeFlags, SpidevOptions};
+        use linux_embedded_hal::{CdevPin, Delay, Spidev};
+
+        let mut spi = Spidev::open("/dev/spidev0.0")?;
+        let spi_options = SpidevOptions::new()
+            .bits_per_word(8)
+            .max_speed_hz(12_000_000)
+            .mode(SpiModeFlags::SPI_MODE_0)
+            .build();
+        spi.configure(&spi_options)?;
+
+        let mut chip = Chip::new("/dev/gpiochip0")?;
+        // RST: 17
+        let rst_output = chip.get_line(17)?;
+        let rst_output_handle = rst_output.request(LineRequestFlags::OUTPUT, 0, "meeting-room")?;
+        let rst = CdevPin::new(rst_output_handle)?;
+        // BUSY / HDRY: 24
+        let busy_input = chip.get_line(24)?;
+        let busy_input_handle = busy_input.request(LineRequestFlags::INPUT, 0, "meeting-room")?;
+        let busy = CdevPin::new(busy_input_handle)?;
+
+        let driver = it8951::interface::IT8951SPIInterface::new(spi, busy, rst, Delay);
+        let mut epd = it8951::IT8951::new(driver).init(1670).unwrap();
+
+        epd.display(it8951::WaveformMode::GrayscaleClearing16).unwrap();
+
+
+
     }
 
     pub fn draw_splash_screen(&self) -> Result<(), anyhow::Error> {
@@ -85,13 +116,21 @@ impl Display {
 
     }
 
+    pub fn draw_clear_screen(&self) -> Result<(), anyhow::Error> {
+        let bmp = self.graphics.to_bmp();
+        let res = env::current_dir().unwrap();
+        let res = res.join("clear.bmp");
+        let result = bmp.save(res);
+        Ok(())
+    }
+
     pub fn draw_data_screen(&self, data: DisplayData) -> Result<(), anyhow::Error> {
 
         let viewport = self.graphics.viewport((10, 32), (1400, 300));
         self.current(viewport, &data.now)?;
 
         let viewport = self.graphics.default_viewport()
-            .shift_down(410);
+            .shift_down(420);
 
         self.hourly_forecast(viewport, &data.hourly_forecast)?;
 
@@ -322,7 +361,7 @@ impl Display {
                 Darkness::Dark,
             );
 
-            let hour_vp = hour_vp.shift_down(36);
+            let hour_vp = hour_vp.shift_down(32);
 
             if let Some(Ok(icon)) = weather_icon(f.weather_icon) {
                 hour_vp.bmp(&trim_bmp(&icon),
@@ -330,7 +369,7 @@ impl Display {
                             VerticalAlign::Top);
             }
 
-            let hour_vp = hour_vp.shift_down(100);
+            let hour_vp = hour_vp.shift_down(86);
             hour_vp.text(
                 &format!("{}°", f.temperature.value),
                 30.0,

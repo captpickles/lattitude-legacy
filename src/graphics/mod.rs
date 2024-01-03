@@ -5,7 +5,6 @@ use ab_glyph::{Font, FontRef, PxScale, Rect};
 use anyhow::anyhow;
 use bmp::{Image, Pixel};
 use glyph_brush_layout::{BuiltInLineBreaker, FontId, GlyphPositioner, HorizontalAlign, Layout, SectionGeometry, SectionGlyph, SectionText, VerticalAlign};
-use midpoint_circle::midpoint_circle;
 
 const BPP: usize = 2;
 
@@ -340,22 +339,6 @@ impl<'g, const WIDTH: usize, const HEIGHT: usize> ViewPort<'g, WIDTH, HEIGHT> {
                                       pixel,
                     )
                 }
-            }
-        }
-    }
-
-    pub fn circle(&self, (x, y): (usize, usize), radius: usize, thickness: Thickness, color: Color) {
-        let thickener = match thickness {
-            Thickness::Thin => 0,
-            Thickness::Medium => 5,
-            Thickness::Heavy => 9,
-        };
-
-        for i in 0..thickener {
-            let points = midpoint_circle((x as isize, y as isize), radius as isize + i);
-
-            for (x, y) in points {
-                self.set((x as usize, y as usize), color);
             }
         }
     }
