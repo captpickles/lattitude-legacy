@@ -1,0 +1,21 @@
+[location]
+lat = 36.949817
+lon = -81.07784
+
+[netatmo]
+client_id = "your_client_id"
+client_secret = "your_client_secret"
+refresh_token = "human_generated_refresh_token_from_their_dev_portal"
+
+[purple]
+api_key = "your_api_key"
+sensor_index = "your_sensor_index"
+
+[accuweather]
+api_key = "your_api_key"
+
+[calendar]
+urls = [
+    "https://www.thunderbird.net/media/caldata/autogen/United-States-Holidays.ics",
+    "https://api.open.fec.gov/v1/calendar-dates/export/?api_key=28Y8q8XFocq8yhKfBzzhUJXjFj2JHCZzIv4P2KIK&per_page=500&calendar_category_id=36",
+]
