@@ -1735,6 +1735,7 @@ dependencies = [
  "bmp",
  "chrono",
  "clap",
+ "embedded-graphics",
  "env_logger",
  "futures",
  "glyph_brush_layout",

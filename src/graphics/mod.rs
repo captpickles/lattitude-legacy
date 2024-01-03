@@ -214,7 +214,7 @@ impl From<Pixel> for Color {
 }
 
 pub struct Graphics<const WIDTH: usize, const HEIGHT: usize> {
-    pixels: RefCell<Vec<Vec<Color>>>,
+    pub pixels: RefCell<Vec<Vec<Color>>>,
 }
 
 impl<const WIDTH: usize, const HEIGHT: usize> Graphics<WIDTH, HEIGHT> {

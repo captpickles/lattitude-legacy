@@ -3,7 +3,11 @@ use std::env;
 use ab_glyph::{Font, PxScale};
 use bmp::Image;
 use chrono::{Datelike, DateTime, Days, Local, Timelike, TimeZone, Utc, Weekday};
+use embedded_graphics::pixelcolor::Gray4;
+use embedded_graphics::prelude::{DrawTarget, GrayColor};
 use glyph_brush_layout::{FontId, GlyphPositioner, HorizontalAlign, Layout, SectionGeometry, SectionText, VerticalAlign};
+use it8951::{AreaImgInfo, memory_converter_settings};
+use it8951::memory_converter_settings::MemoryConverterSetting;
 use crate::accuweather::daily_forecast::DailyForecast;
 use crate::accuweather::hourly_forecast::HourlyForecast;
 use crate::art::{aqi, arrow_down, arrow_level, arrow_small_down, arrow_small_up, arrow_up, logo, moon_full, moon_new, moon_first_quarter, sunrise, sunset, moon_waning_gibbous, moon_waxing_gibbous, moon_waning_crescent, moon_waxing_crescent, moon_third_quarter, weather, wind};
@@ -58,10 +62,57 @@ impl Display {
         let driver = it8951::interface::IT8951SPIInterface::new(spi, busy, rst, Delay);
         let mut epd = it8951::IT8951::new(driver).init(1670).unwrap();
 
+        impl From<Color> for Gray4 {
+            fn from(value: Color) -> Self {
+                let color = match value {
+                    Color::Black => Gray4::new(0),
+                    Color::Gray1 => Gray4::new(1),
+                    Color::Gray2 => Gray4::new(2),
+                    Color::Gray3 => Gray4::new(3),
+                    Color::Gray4 => Gray4::new(4),
+                    Color::Gray5 => Gray4::new(5),
+                    Color::Gray6 => Gray4::new(6),
+                    Color::Gray7 => Gray4::new(7),
+                    Color::Gray8 => Gray4::new(8),
+                    Color::Gray9 => Gray4::new(9),
+                    Color::Gray10 => Gray4::new(10),
+                    Color::Gray11 => Gray4::new(11),
+                    Color::Gray12 => Gray4::new(12),
+                    Color::Gray13 => Gray4::new(13),
+                    Color::Gray14 => Gray4::new(14),
+                    Color::White => Gray4::new(15)
+                };
+            }
+        }
+
+        let buffer = self.graphics.pixels.borrow();
+
+        for (y, row) in buffer.iter().enumerate() {
+            let mut data = [0; WIDTH];
+            for (x, color) in row.iter().enumerate() {
+                let color: Gray4 = color.into();
+                data[x] = (color.luma() as u16) << ((x % 4) * 4);
+                epd.load_image_area(
+                    epd.get_dev_info().memory_address,
+                    MemoryConverterSetting {
+                        endianness:
+                        memory_converter_settings::MemoryConverterEndianness::LittleEndian,
+                        bit_per_pixel:
+                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
+                        rotation: memory_converter_settings::MemoryConverterRotation::Rotate0,
+                    },
+                    &AreaImgInfo {
+                        area_x: x as u16,
+                        area_y: y as u16,
+                        area_w: WIDTH as u16,
+                        area_h: 1,
+                    },
+                    &data,
+                ).unwrap();
+            }
+        }
+
         epd.display(it8951::WaveformMode::GrayscaleClearing16).unwrap();
-
-
-
     }
 
     pub fn draw_splash_screen(&self) -> Result<(), anyhow::Error> {
