@@ -1,0 +1,27 @@
+[package]
+name = "weathery"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4.20"
+env_logger = "0.10.1"
+anyhow = "1.0.76"
+reqwest = { version = "0.11.23", features = ["json"] }
+tokio = { version = "1.35.1", features = ["rt", "rt-multi-thread", "macros"] }
+serde = { version = "1.0.193", features = ["derive"] }
+serde_json = { version = "1.0.108" , features = ["raw_value"]}
+toml = "0.8.8"
+buffer-graphics-lib = "0.12.3"
+ab_glyph = "0.2.23"
+glyph_brush_layout = "0.2.3"
+bmp = "0.5.0"
+chrono = {  version = "0.4.31", features = ["serde"] }
+futures = "0.3.30"
+bresenham = "0.1.1"
+midpoint_circle = "0.1.0"
+ical = "0.9.0"
+
+
