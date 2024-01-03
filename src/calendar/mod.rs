@@ -1,11 +1,6 @@
 use std::str::from_utf8;
 use chrono::{DateTime, Local, NaiveDate};
-
-const URLS: [&str; 2] = [
-    //"https://ics.calendarlabs.com/76/201ebb0e/US_Holidays.ics",
-    "https://www.thunderbird.net/media/caldata/autogen/United-States-Holidays.ics",
-    "https://api.open.fec.gov/v1/calendar-dates/export/?api_key=28Y8q8XFocq8yhKfBzzhUJXjFj2JHCZzIv4P2KIK&per_page=500&calendar_category_id=36",
-];
+use crate::state::state;
 
 pub struct CalendarClient {}
 
@@ -15,8 +10,9 @@ impl CalendarClient {
     }
 
     pub async fn events(&self) -> Result<Vec<Event>, anyhow::Error> {
+        let state = state().calendar;
         let mut events = Vec::new();
-        for url in URLS {
+        for url in state.urls {
             let result = reqwest::Client::new()
                 .get(url)
                 .send()
