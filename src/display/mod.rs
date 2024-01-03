@@ -163,6 +163,9 @@ impl Display {
         let res = res.join("splash.bmp");
         let result = bmp.save(res);
 
+        #[cfg(feature = "linux-embedded-hal")]
+        self.paint();
+
         Ok(())
 
     }
@@ -172,6 +175,10 @@ impl Display {
         let res = env::current_dir().unwrap();
         let res = res.join("clear.bmp");
         let result = bmp.save(res);
+
+        #[cfg(feature = "linux-embedded-hal")]
+        self.paint();
+
         Ok(())
     }
 
@@ -193,6 +200,10 @@ impl Display {
         let res = env::current_dir().unwrap();
         let res = res.join("screen.bmp");
         let result = bmp.save(res);
+
+        #[cfg(feature = "linux-embedded-hal")]
+        self.paint();
+
         Ok(())
     }
 
