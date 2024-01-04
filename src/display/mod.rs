@@ -92,22 +92,20 @@ impl Display {
 
         for (chunk, rows) in chunks.enumerate() {
             println!("chunk {chunk}");
-            let mut data = [0; WIDTH * (HEIGHT / NUM_CHUNKS)];
+            let mut data = [0; (WIDTH * (HEIGHT / NUM_CHUNKS))/4];
             let mut cur = 0;
             for row in rows.iter() {
                 for (x, color) in row.iter().enumerate() {
                     let color: Gray4 = color.into();
-                    data[cur] = (color.luma() as u16) << ((x % 4) * 4);
+                    data[cur] = data[cur] | (color.luma() as u16) << ((x % 4) * 4);
                     cur += 1;
                 }
             }
             if let Err(err) = epd.load_image_area(
                 epd.get_dev_info().memory_address,
                 MemoryConverterSetting {
-                    endianness:
-                    memory_converter_settings::MemoryConverterEndianness::LittleEndian,
-                    bit_per_pixel:
-                    memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
+                    endianness: memory_converter_settings::MemoryConverterEndianness::LittleEndian,
+                    bit_per_pixel: memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
                     rotation: memory_converter_settings::MemoryConverterRotation::Rotate0,
                 },
                 &AreaImgInfo {
