@@ -115,9 +115,9 @@ impl Display {
                 },
                 &AreaImgInfo {
                     area_x: 0,
-                    area_y: (chunk * (HEIGHT/ CHUNK_SIZE)) as u16,
+                    area_y: (chunk * CHUNK_SIZE) as u16,
                     area_w: WIDTH as u16,
-                    area_h: (HEIGHT / CHUNK_SIZE) as u16,
+                    area_h: CHUNK_SIZE as u16,
                 },
                 &data,
             ) {
