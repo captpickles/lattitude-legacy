@@ -87,29 +87,35 @@ impl Display {
 
         let buffer = self.graphics.pixels.borrow();
 
-        for (y, row) in buffer.iter().enumerate() {
-            println!("row {y}");
-            let mut data = [0; WIDTH];
-            for (x, color) in row.iter().enumerate() {
-                let color: Gray4 = color.into();
-                data[x] = (color.luma() as u16) << ((x % 4) * 4);
-                epd.load_image_area(
-                    epd.get_dev_info().memory_address,
-                    MemoryConverterSetting {
-                        endianness:
-                        memory_converter_settings::MemoryConverterEndianness::LittleEndian,
-                        bit_per_pixel:
-                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
-                        rotation: memory_converter_settings::MemoryConverterRotation::Rotate0,
-                    },
-                    &AreaImgInfo {
-                        area_x: x as u16,
-                        area_y: y as u16,
-                        area_w: WIDTH as u16,
-                        area_h: 1,
-                    },
-                    &data,
-                ).unwrap();
+        let chunks = buffer.chunks(HEIGHT / 4);
+
+        for (chunk, rows) in chunks.enumerate() {
+            println!("chunk {chunk}");
+            for row in rows {
+                let y = chunk * (HEIGHT/4) + row;
+                println!("row {y}");
+                let mut data = [0; WIDTH];
+                for (x, color) in row.iter().enumerate() {
+                    let color: Gray4 = color.into();
+                    data[x] = (color.luma() as u16) << ((x % 4) * 4);
+                    epd.load_image_area(
+                        epd.get_dev_info().memory_address,
+                        MemoryConverterSetting {
+                            endianness:
+                            memory_converter_settings::MemoryConverterEndianness::LittleEndian,
+                            bit_per_pixel:
+                            memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
+                            rotation: memory_converter_settings::MemoryConverterRotation::Rotate0,
+                        },
+                        &AreaImgInfo {
+                            area_x: x as u16,
+                            area_y: y as u16,
+                            area_w: WIDTH as u16,
+                            area_h: 1,
+                        },
+                        &data,
+                    ).unwrap();
+                }
             }
         }
 
@@ -124,9 +130,9 @@ impl Display {
         self.graphics.default_viewport()
             .shift_down(1400)
             .bmp(
-                    &trim_bmp(&logo()?),
+                &trim_bmp(&logo()?),
                 HorizontalAlign::Center,
-                VerticalAlign::Top
+                VerticalAlign::Top,
             );
 
         self.graphics.default_viewport()
@@ -137,18 +143,18 @@ impl Display {
                 &typewriter()?,
                 HorizontalAlign::Center,
                 VerticalAlign::Top,
-                Darkness::Medium
+                Darkness::Medium,
             );
 
         self.graphics.default_viewport()
             .shift_down(400)
             .text(
                 "L'åttitüdé",
-                    144.0,
+                144.0,
                 &typewriter()?,
                 HorizontalAlign::Center,
                 VerticalAlign::Top,
-                Darkness::Dark
+                Darkness::Dark,
             );
 
         self.graphics.default_viewport()
@@ -159,7 +165,7 @@ impl Display {
                 &typewriter()?,
                 HorizontalAlign::Center,
                 VerticalAlign::Top,
-                Darkness::Light
+                Darkness::Light,
             );
 
 
@@ -172,7 +178,6 @@ impl Display {
         self.paint()?;
 
         Ok(())
-
     }
 
     pub fn draw_clear_screen(&self) -> Result<(), anyhow::Error> {
@@ -188,7 +193,6 @@ impl Display {
     }
 
     pub fn draw_data_screen(&self, data: DisplayData) -> Result<(), anyhow::Error> {
-
         let viewport = self.graphics.viewport((10, 32), (1400, 300));
         self.current(viewport, &data.now)?;
 
@@ -215,7 +219,7 @@ impl Display {
     fn current<const WIDTH: usize, const HEIGHT: usize>(&self, viewport: ViewPort<'_, WIDTH, HEIGHT>, data: &NowData) -> Result<(), anyhow::Error> {
         //viewport.outline(Color::Black);
         if let Some(temp) = &data.temp {
-            let temp_vp = viewport.viewport((0,90), (600, 250));
+            let temp_vp = viewport.viewport((0, 90), (600, 250));
             let rect = temp_vp
                 .text(
                     &format!("{:.1}°", c_to_f(temp.temperature as f64)),
@@ -225,7 +229,7 @@ impl Display {
                     VerticalAlign::Center,
                     Darkness::Dark);
 
-            let trend_vp = self.graphics.viewport( (rect.min.x as usize - 100, rect.min.y as usize + 30), (300, (rect.max.y - rect.min.y) as usize - 30));
+            let trend_vp = self.graphics.viewport((rect.min.x as usize - 100, rect.min.y as usize + 30), (300, (rect.max.y - rect.min.y) as usize - 30));
 
             match temp.temp_trend {
                 Trend::Up => {
@@ -410,7 +414,7 @@ impl Display {
                 if f.date_time.hour() == 12 {
                     "Noon".to_string()
                 } else {
-                   format!( "{}p", f.date_time.hour() - 12)
+                    format!("{}p", f.date_time.hour() - 12)
                 }
             } else {
                 if f.date_time.hour() == 0 {
@@ -461,14 +465,14 @@ impl Display {
 
         let moonphase_vp = moonphase_vp.shift_down(120);
 
-        let (rise_shift, set_shift)  = match (forecast.moon.rise, forecast.moon.set) {
+        let (rise_shift, set_shift) = match (forecast.moon.rise, forecast.moon.set) {
             (Some(rise), Some(set)) => {
                 if rise < set {
                     (0, 25)
                 } else {
                     (25, 0)
                 }
-            },
+            }
             (Some(rise), None) => {
                 (0, 25)
             }
@@ -518,7 +522,7 @@ impl Display {
             Darkness::Dark,
         );
 
-        let cleaned_phrase = forecast.day.long_phrase.replace( "; check AccuWeather frequently", "");
+        let cleaned_phrase = forecast.day.long_phrase.replace("; check AccuWeather frequently", "");
 
         today_vp.shift_down(114)
             .padded_right(200)
@@ -583,7 +587,7 @@ impl Display {
         let rect = rain_vp.relative(rect);
 
         let total_precip = forecast.day.snow.value + forecast.night.snow.value
-        + forecast.day.rain.value + forecast.night.rain.value
+            + forecast.day.rain.value + forecast.night.rain.value
             + forecast.day.ice.value + forecast.night.ice.value;
 
         rain_vp
