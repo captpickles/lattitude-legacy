@@ -91,7 +91,7 @@ impl Display {
         const HEIGHT: usize = 10;
         const WIDTH: usize= crate::display::WIDTH;
 
-        const NUM_CHUNKS: usize = 1;
+        const NUM_CHUNKS: usize = 5;
 
         let chunks = buffer.chunks(HEIGHT / NUM_CHUNKS);
 
