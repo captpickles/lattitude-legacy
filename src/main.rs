@@ -41,6 +41,9 @@ async fn main() -> Result<(), anyhow::Error> {
         Command::Screen(inner) => {
             inner.run(&mut paint).await?;
         }
+        Command::Loop(inner) => {
+            inner.run(&mut paint).await?;
+        }
     }
 
     /*
