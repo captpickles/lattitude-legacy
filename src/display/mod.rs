@@ -91,8 +91,10 @@ impl Display {
         let chunks = buffer.chunks(HEIGHT / NUM_CHUNKS);
 
         for (chunk, rows) in chunks.enumerate() {
-            println!("chunk {chunk}");
             let mut data = [0; (WIDTH * (HEIGHT / NUM_CHUNKS))/4];
+            println!("addr {}", epd.get_dev_info().memory_address);
+            println!("h-w {}x{}", epd.get_dev_info().panel_height, epd.get_dev_info().panel_width);
+            println!("chunk {chunk} data len {}", data.len());
             let mut cur = 0;
             for row in rows.iter() {
                 for (x, color) in row.iter().enumerate() {
