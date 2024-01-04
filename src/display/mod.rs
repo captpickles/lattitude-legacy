@@ -91,8 +91,8 @@ impl Display {
 
         for (chunk, rows) in chunks.enumerate() {
             println!("chunk {chunk}");
-            for row in rows {
-                let y = chunk * (HEIGHT/4) + row;
+            for (row_num, row) in rows.iter().enumerate() {
+                let y = chunk * (HEIGHT/4) + row_num;
                 println!("row {y}");
                 let mut data = [0; WIDTH];
                 for (x, color) in row.iter().enumerate() {
