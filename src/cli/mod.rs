@@ -79,12 +79,11 @@ impl LoopCommand {
 
         let ds = DataSource::new();
 
-        for i in 0..10 {
+        loop {
             let data = ds.get().await?;
             let mut display = Display::new(paint);
-            println!("draw");
             display.draw_data_screen(data)?;
-            tokio::time::sleep(Duration::from_secs(15));
+            tokio::time::sleep(Duration::from_secs(60));
         }
         Ok(())
     }

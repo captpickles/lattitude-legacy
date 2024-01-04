@@ -72,9 +72,6 @@ pub mod epd {
 
             for (chunk, rows) in chunks.enumerate() {
                 let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE)/4];
-                println!("addr {}", self.epd.get_dev_info().memory_address);
-                println!("h-w {}x{}", self.epd.get_dev_info().panel_height, self.epd.get_dev_info().panel_width);
-                println!("chunk {chunk} data len {}", data.len());
                 let mut cur = 0;
                 for row in rows.iter() {
                     for (x, color) in row.iter().rev().enumerate() {
@@ -104,9 +101,7 @@ pub mod epd {
                 }
             }
 
-            println!("display()");
             self.epd.display(it8951::WaveformMode::GrayscaleClearing16).unwrap();
-            println!("display() done");
             Ok(())
         }
     }
