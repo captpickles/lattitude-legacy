@@ -34,23 +34,23 @@ pub mod epd {
 
     impl EpdPaint {
         pub fn new() -> Self {
-            let mut spi = Spidev::open("/dev/spidev0.0")?;
+            let mut spi = Spidev::open("/dev/spidev0.0").expect("open spi");
             let spi_options = SpidevOptions::new()
                 .bits_per_word(8)
                 .max_speed_hz(12_000_000)
                 .mode(SpiModeFlags::SPI_MODE_0)
                 .build();
-            spi.configure(&spi_options)?;
+            spi.configure(&spi_options).expect("configure spi");
 
-            let mut chip = Chip::new("/dev/gpiochip0")?;
+            let mut chip = Chip::new("/dev/gpiochip0").expect("open GPIO");
             // RST: 17
-            let rst_output = chip.get_line(17)?;
-            let rst_output_handle = rst_output.request(LineRequestFlags::OUTPUT, 0, "meeting-room")?;
-            let rst = CdevPin::new(rst_output_handle)?;
+            let rst_output = chip.get_line(17).expect("line 17: rst output");
+            let rst_output_handle = rst_output.request(LineRequestFlags::OUTPUT, 0, "meeting-room").expect("line 17: rst handle");
+            let rst = CdevPin::new(rst_output_handle).expect("line 17: rst");
             // BUSY / HDRY: 24
-            let busy_input = chip.get_line(24)?;
-            let busy_input_handle = busy_input.request(LineRequestFlags::INPUT, 0, "meeting-room")?;
-            let busy = CdevPin::new(busy_input_handle)?;
+            let busy_input = chip.get_line(24).expect("line 24: busy input");
+            let busy_input_handle = busy_input.request(LineRequestFlags::INPUT, 0, "meeting-room").expect("line 24: busy handle");
+            let busy = CdevPin::new(busy_input_handle).expect("line 24: busy");
 
             let driver = it8951::interface::IT8951SPIInterface::new(spi, busy, rst, Delay);
             let mut epd = it8951::IT8951::new(driver).init(1550).unwrap();
