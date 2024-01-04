@@ -778,6 +778,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "lattitude"
+version = "0.1.0"
+dependencies = [
+ "ab_glyph",
+ "anyhow",
+ "bmp",
+ "chrono",
+ "clap",
+ "embedded-graphics",
+ "env_logger",
+ "futures",
+ "glyph_brush_layout",
+ "ical",
+ "it8951",
+ "linux-embedded-hal",
+ "log",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "toml",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1725,30 +1749,6 @@ name = "wasm-bindgen-shared"
 version = "0.2.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ab9b36309365056cd639da3134bf87fa8f3d86008abf99e612384a6eecd459f"
-
-[[package]]
-name = "weathery"
-version = "0.1.0"
-dependencies = [
- "ab_glyph",
- "anyhow",
- "bmp",
- "chrono",
- "clap",
- "embedded-graphics",
- "env_logger",
- "futures",
- "glyph_brush_layout",
- "ical",
- "it8951",
- "linux-embedded-hal",
- "log",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "toml",
-]
 
 [[package]]
 name = "web-sys"

@@ -36,7 +36,7 @@ impl Display {
     }
 
     #[cfg(feature = "linux-embedded-hal")]
-    pub fn paint(&self) {
+    pub fn paint(&self) -> Result<(), anyhow::Error> {
         use linux_embedded_hal::gpio_cdev::{Chip, LineRequestFlags};
         use linux_embedded_hal::spidev::{SpiModeFlags, SpidevOptions};
         use linux_embedded_hal::{CdevPin, Delay, Spidev};
@@ -62,9 +62,9 @@ impl Display {
         let driver = it8951::interface::IT8951SPIInterface::new(spi, busy, rst, Delay);
         let mut epd = it8951::IT8951::new(driver).init(1550).unwrap();
 
-        impl From<Color> for Gray4 {
-            fn from(value: Color) -> Self {
-                let color = match value {
+        impl From<&Color> for Gray4 {
+            fn from(value: &Color) -> Self {
+                match value {
                     Color::Black => Gray4::new(0),
                     Color::Gray1 => Gray4::new(1),
                     Color::Gray2 => Gray4::new(2),
@@ -81,7 +81,7 @@ impl Display {
                     Color::Gray13 => Gray4::new(13),
                     Color::Gray14 => Gray4::new(14),
                     Color::White => Gray4::new(15)
-                };
+                }
             }
         }
 
