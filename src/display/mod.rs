@@ -91,31 +91,31 @@ impl Display {
 
         for (chunk, rows) in chunks.enumerate() {
             println!("chunk {chunk}");
+            let mut data = [0; WIDTH * (HEIGHT/4)];
             for (row_num, row) in rows.iter().enumerate() {
                 let y = chunk * (HEIGHT/4) + row_num;
                 println!("row {y}");
-                let mut data = [0; WIDTH];
                 for (x, color) in row.iter().enumerate() {
                     let color: Gray4 = color.into();
                     data[x] = (color.luma() as u16) << ((x % 4) * 4);
-                    epd.load_image_area(
-                        epd.get_dev_info().memory_address,
-                        MemoryConverterSetting {
-                            endianness:
-                            memory_converter_settings::MemoryConverterEndianness::LittleEndian,
-                            bit_per_pixel:
-                            memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
-                            rotation: memory_converter_settings::MemoryConverterRotation::Rotate0,
-                        },
-                        &AreaImgInfo {
-                            area_x: x as u16,
-                            area_y: y as u16,
-                            area_w: WIDTH as u16,
-                            area_h: 1,
-                        },
-                        &data,
-                    ).unwrap();
                 }
+                epd.load_image_area(
+                    epd.get_dev_info().memory_address,
+                    MemoryConverterSetting {
+                        endianness:
+                        memory_converter_settings::MemoryConverterEndianness::LittleEndian,
+                        bit_per_pixel:
+                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
+                        rotation: memory_converter_settings::MemoryConverterRotation::Rotate0,
+                    },
+                    &AreaImgInfo {
+                        area_x: x as u16,
+                        area_y: y as u16,
+                        area_w: WIDTH as u16,
+                        area_h: 1,
+                    },
+                    &data,
+                ).unwrap();
             }
         }
 
