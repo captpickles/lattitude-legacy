@@ -102,7 +102,7 @@ impl Display {
             println!("chunk {chunk} data len {}", data.len());
             let mut cur = 0;
             for row in rows.iter() {
-                for (x, color) in row.iter().enumerate() {
+                for (x, color) in row.iter().rev().enumerate() {
                     let color: Gray4 = color.into();
                     data[cur] = data[cur] | (color.luma() as u16) << ((x % 4) * 4);
                     if x % 4 == 3 {
