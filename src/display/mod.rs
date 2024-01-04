@@ -88,6 +88,7 @@ impl Display {
         let buffer = self.graphics.pixels.borrow();
 
         for (y, row) in buffer.iter().enumerate() {
+            println!("row {y}");
             let mut data = [0; WIDTH];
             for (x, color) in row.iter().enumerate() {
                 let color: Gray4 = color.into();
@@ -112,7 +113,9 @@ impl Display {
             }
         }
 
+        println!("display()");
         epd.display(it8951::WaveformMode::GrayscaleClearing16).unwrap();
+        println!("display() done");
 
         Ok(())
     }
