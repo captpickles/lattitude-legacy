@@ -91,12 +91,12 @@ impl Display {
         const HEIGHT: usize = 10;
         const WIDTH: usize= crate::display::WIDTH;
 
-        const NUM_CHUNKS: usize = 5;
+        const CHUNK_SIZE: usize = 5;
 
-        let chunks = buffer.chunks(HEIGHT / NUM_CHUNKS);
+        let chunks = buffer.chunks(CHUNK_SIZE);
 
         for (chunk, rows) in chunks.enumerate() {
-            let mut data = [0; (WIDTH * (HEIGHT / NUM_CHUNKS))/4];
+            let mut data = [0; (WIDTH * CHUNK_SIZE)/4];
             println!("addr {}", epd.get_dev_info().memory_address);
             println!("h-w {}x{}", epd.get_dev_info().panel_height, epd.get_dev_info().panel_width);
             println!("chunk {chunk} data len {}", data.len());
@@ -119,9 +119,9 @@ impl Display {
                 },
                 &AreaImgInfo {
                     area_x: 0,
-                    area_y: (chunk * (HEIGHT/NUM_CHUNKS)) as u16,
+                    area_y: (chunk * (HEIGHT/ CHUNK_SIZE)) as u16,
                     area_w: WIDTH as u16,
-                    area_h: (HEIGHT / NUM_CHUNKS) as u16,
+                    area_h: (HEIGHT / CHUNK_SIZE) as u16,
                 },
                 &data,
             ) {
