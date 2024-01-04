@@ -87,11 +87,7 @@ impl Display {
 
         let buffer = self.graphics.pixels.borrow();
 
-        //const HEIGHT: usize = crate::display::HEIGHT;
-        const HEIGHT: usize = 10;
-        const WIDTH: usize= crate::display::WIDTH;
-
-        const CHUNK_SIZE: usize = 5;
+        const CHUNK_SIZE: usize = 2;
 
         let chunks = buffer.chunks(CHUNK_SIZE);
 
