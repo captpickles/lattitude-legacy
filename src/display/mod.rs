@@ -21,8 +21,8 @@ use crate::paint::Paint;
 //const WIDTH: usize = 1072;
 //const HEIGHT: usize = 1448;
 
-const WIDTH: usize = 1404;
-const HEIGHT: usize = 1872;
+pub const WIDTH: usize = 1404;
+pub const HEIGHT: usize = 1872;
 
 
 pub struct Display<'p, P: Paint> {

@@ -11,7 +11,7 @@ pub struct NoOpPaint;
 
 impl Paint for NoOpPaint {
     fn paint<const WIDTH: usize, const HEIGHT: usize>(&mut self, graphics: &Graphics<WIDTH, HEIGHT>) -> Result<(), Error> {
-        todo!()
+        Ok(())
     }
 }
 
@@ -71,7 +71,7 @@ pub mod epd {
             let chunks = buffer.chunks(CHUNK_SIZE);
 
             for (chunk, rows) in chunks.enumerate() {
-                let mut data = [0; (WIDTH * CHUNK_SIZE)/4];
+                let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE)/4];
                 println!("addr {}", self.epd.get_dev_info().memory_address);
                 println!("h-w {}x{}", self.epd.get_dev_info().panel_height, self.epd.get_dev_info().panel_width);
                 println!("chunk {chunk} data len {}", data.len());
@@ -95,7 +95,7 @@ pub mod epd {
                     &AreaImgInfo {
                         area_x: 0,
                         area_y: (chunk * CHUNK_SIZE) as u16,
-                        area_w: WIDTH as u16,
+                        area_w: crate::display::WIDTH as u16,
                         area_h: CHUNK_SIZE as u16,
                     },
                     &data,
