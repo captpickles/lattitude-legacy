@@ -86,7 +86,12 @@ impl Display {
         }
 
         let buffer = self.graphics.pixels.borrow();
-        const NUM_CHUNKS: usize = 4;
+
+        //const HEIGHT: usize = crate::display::HEIGHT;
+        const HEIGHT: usize = 10;
+        const WIDTH: usize= crate::display::WIDTH;
+
+        const NUM_CHUNKS: usize = 1;
 
         let chunks = buffer.chunks(HEIGHT / NUM_CHUNKS);
 
@@ -100,7 +105,9 @@ impl Display {
                 for (x, color) in row.iter().enumerate() {
                     let color: Gray4 = color.into();
                     data[cur] = data[cur] | (color.luma() as u16) << ((x % 4) * 4);
-                    cur += 1;
+                    if x % 4 == 3 {
+                        cur += 1;
+                    }
                 }
             }
             if let Err(err) = epd.load_image_area(
@@ -108,7 +115,7 @@ impl Display {
                 MemoryConverterSetting {
                     endianness: memory_converter_settings::MemoryConverterEndianness::LittleEndian,
                     bit_per_pixel: memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
-                    rotation: memory_converter_settings::MemoryConverterRotation::Rotate0,
+                    rotation: memory_converter_settings::MemoryConverterRotation::Rotate270,
                 },
                 &AreaImgInfo {
                     area_x: 0,
