@@ -101,7 +101,7 @@ impl Display {
                     cur += 1;
                 }
             }
-            epd.load_image_area(
+            if let Err(err) = epd.load_image_area(
                 epd.get_dev_info().memory_address,
                 MemoryConverterSetting {
                     endianness:
@@ -117,7 +117,9 @@ impl Display {
                     area_h: (HEIGHT / NUM_CHUNKS) as u16,
                 },
                 &data,
-            ).unwrap();
+            ) {
+                println!("{:#?}", err);
+            }
         }
 
         println!("display()");
