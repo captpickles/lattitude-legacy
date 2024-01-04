@@ -83,7 +83,7 @@ impl LoopCommand {
             let data = ds.get().await?;
             let mut display = Display::new(paint);
             display.draw_data_screen(data)?;
-            tokio::time::sleep(Duration::from_secs(60));
+            tokio::time::sleep(Duration::from_secs(60)).await;
         }
         Ok(())
     }
