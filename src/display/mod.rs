@@ -16,6 +16,7 @@ use crate::data::data::{DisplayData, NowData};
 use crate::font::{typewriter, sanserif, sanserif_bold, typewriter_bold, script};
 use crate::graphics::{Color, Darkness, Graphics, lighten_bmp, rotate_bmp, Thickness, trim_bmp, ViewPort};
 use crate::netatmo::Trend;
+use crate::paint::Paint;
 
 //const WIDTH: usize = 1072;
 //const HEIGHT: usize = 1448;
@@ -24,17 +25,20 @@ const WIDTH: usize = 1404;
 const HEIGHT: usize = 1872;
 
 
-pub struct Display {
+pub struct Display<'p, P: Paint> {
     graphics: Graphics<WIDTH, HEIGHT>,
+    paint: &'p mut P,
 }
 
-impl Display {
-    pub fn new() -> Self {
+impl<'p, P:Paint> Display<'p, P> {
+    pub fn new(paint: &'p mut P) -> Self {
         Self {
-            graphics: Graphics::new()
+            graphics: Graphics::new(),
+            paint,
         }
     }
 
+    /*
     #[cfg(feature = "linux-embedded-hal")]
     pub fn paint(&self) -> Result<(), anyhow::Error> {
         use linux_embedded_hal::gpio_cdev::{Chip, LineRequestFlags};
@@ -132,7 +136,13 @@ impl Display {
         Ok(())
     }
 
-    pub fn draw_splash_screen(&self) -> Result<(), anyhow::Error> {
+     */
+
+    pub fn paint(&mut self) -> Result<(), anyhow::Error> {
+       self.paint.paint(&self.graphics)
+    }
+
+    pub fn draw_splash_screen(&mut self) -> Result<(), anyhow::Error> {
         self.graphics.default_viewport()
             .shift_down(1400)
             .bmp(
@@ -180,25 +190,23 @@ impl Display {
         let res = res.join("splash.bmp");
         let result = bmp.save(res);
 
-        #[cfg(feature = "linux-embedded-hal")]
         self.paint()?;
 
         Ok(())
     }
 
-    pub fn draw_clear_screen(&self) -> Result<(), anyhow::Error> {
+    pub fn draw_clear_screen(&mut self) -> Result<(), anyhow::Error> {
         let bmp = self.graphics.to_bmp();
         let res = env::current_dir().unwrap();
         let res = res.join("clear.bmp");
         let result = bmp.save(res);
 
-        #[cfg(feature = "linux-embedded-hal")]
         self.paint()?;
 
         Ok(())
     }
 
-    pub fn draw_data_screen(&self, data: DisplayData) -> Result<(), anyhow::Error> {
+    pub fn draw_data_screen(&mut self, data: DisplayData) -> Result<(), anyhow::Error> {
         let viewport = self.graphics.viewport((10, 32), (1400, 300));
         self.current(viewport, &data.now)?;
 
@@ -216,7 +224,6 @@ impl Display {
         let res = res.join("screen.bmp");
         let result = bmp.save(res);
 
-        #[cfg(feature = "linux-embedded-hal")]
         self.paint()?;
 
         Ok(())

@@ -5,6 +5,7 @@ use crate::calendar::CalendarClient;
 use crate::cli::{Cli, Command};
 use crate::data::DataSource;
 use crate::display::Display;
+use crate::paint::{NoOpPaint, Paint};
 
 mod netatmo;
 mod purple;
@@ -17,6 +18,7 @@ mod accuweather;
 mod calendar;
 mod state;
 mod cli;
+mod paint;
 
 //pub const LAT: &str ="36.949817";
 //pub const LON: &str = "-81.077840";
@@ -27,15 +29,17 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let cli = Cli::parse();
 
+    let mut paint = new_paint();
+
     match cli.command {
         Command::Clear(inner) => {
-            inner.run().await?;
+            inner.run(&mut paint).await?;
         }
         Command::Splash(inner) => {
-            inner.run().await?;
+            inner.run(&mut paint).await?;
         }
         Command::Screen(inner) => {
-            inner.run().await?;
+            inner.run(&mut paint).await?;
         }
     }
 
@@ -55,4 +59,15 @@ async fn main() -> Result<(), anyhow::Error> {
 
 
     Ok(())
+}
+
+#[cfg(feature = "linux-embedded-hal")]
+pub fn new_paint() -> impl Paint {
+    use crate::paint::epd::EpdPaint;
+    EpdPaint::new()
+}
+
+#[cfg(not(feature="linux-embedded-hal"))]
+pub fn new_paint() -> impl Paint {
+    NoOpPaint
 }

@@ -1,6 +1,7 @@
 use clap::{Args, Parser, Subcommand};
 use crate::data::DataSource;
 use crate::display::Display;
+use crate::paint::Paint;
 
 #[derive(Debug, Clone, Parser)]
 #[command(
@@ -28,8 +29,8 @@ pub struct ClearCommand {
 }
 
 impl ClearCommand {
-    pub async fn run(&self) -> Result<(), anyhow::Error>{
-        let display = Display::new();
+    pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error>{
+        let mut display = Display::new(paint);
         display.draw_clear_screen()?;
         Ok(())
     }
@@ -44,8 +45,8 @@ pub struct SplashCommand {
 }
 
 impl SplashCommand {
-    pub async fn run(&self) -> Result<(), anyhow::Error>{
-        let display = Display::new();
+    pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error>{
+        let mut display = Display::new(paint);
         display.draw_splash_screen()?;
         Ok(())
     }
@@ -61,11 +62,11 @@ pub struct ScreenCommand {
 }
 
 impl ScreenCommand {
-    pub async fn run(&self) -> Result<(), anyhow::Error>{
+    pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error>{
         let ds = DataSource::new();
         let data = ds.get().await?;
 
-        let display = Display::new();
+        let mut display = Display::new(paint);
         display.draw_data_screen(data)?;
         Ok(())
     }
