@@ -148,7 +148,7 @@ pub mod epd {
                 let mut data = vec![0; width * CHUNK_SIZE];
                 println!("data buffer {}", data.len());
                 let mut cur = 0;
-                for row in rows[0..height].iter() {
+                for row in rows.iter() {
                     for (x, color) in row.as_slice()[x..x+width].iter().rev().enumerate() {
                         let color: Gray4 = color.into();
                         data[cur] = data[cur] | (color.luma() as u16) << ((x % 4) * 4);
