@@ -134,6 +134,8 @@ pub mod epd {
             (x, y): (usize, usize),
             (width, height): (usize, usize),
         ) -> Result<(), Error> {
+
+            println!("PARTIAL {},{} -> {},{}", x, y, width, height);
             let buffer = graphics.pixels.borrow();
 
             const CHUNK_SIZE: usize = 2;
@@ -144,9 +146,10 @@ pub mod epd {
             for (chunk, rows) in chunks.enumerate() {
                 //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
                 let mut data = vec![0; width * CHUNK_SIZE];
+                println!("data buffer {}", data.len());
                 let mut cur = 0;
-                for row in rows[0..width].iter() {
-                    for (x, color) in row.iter().rev().enumerate() {
+                for row in rows[0..height].iter() {
+                    for (x, color) in row.as_slice()[x..x+width].iter().rev().enumerate() {
                         let color: Gray4 = color.into();
                         data[cur] = data[cur] | (color.luma() as u16) << ((x % 4) * 4);
                         if x % 4 == 3 {
