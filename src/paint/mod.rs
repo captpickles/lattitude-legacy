@@ -142,7 +142,8 @@ pub mod epd {
             let chunks = buffer.as_slice()[y..y + height].chunks(2);
 
             for (chunk, rows) in chunks.enumerate() {
-                let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
+                //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
+                let mut data = vec![0; width * CHUNK_SIZE];
                 let mut cur = 0;
                 for row in rows[x..x+width].iter() {
                     for (x, color) in row.iter().rev().enumerate() {
