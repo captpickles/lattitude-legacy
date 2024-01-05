@@ -150,7 +150,7 @@ pub mod epd {
                 //println!("data buffer {}", data.len());
                 let mut cur = 0;
                 for row in rows.iter() {
-                    for (x, color) in row.iter().rev().as_slice()[origin_x..origin_x + width].iter().enumerate() {
+                    for (x, color) in row.as_slice()[origin_x..origin_x + width].iter().rev().enumerate() {
                         let color: BinaryColor = color.into();
                         data[cur] = data[cur] | (if color.is_on() { 1 } else { 0 }) << ((x % 16));
                         if x % 16 == 15 {
