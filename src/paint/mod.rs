@@ -146,21 +146,17 @@ pub mod epd {
 
             for (chunk, rows) in chunks.enumerate() {
                 //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
-                //let mut data = vec![0; ((width / 8) * CHUNK_SIZE) + 1];
-                let mut data = vec![0; width * CHUNK_SIZE];
+                let mut data = vec![0; ((width / 8) * CHUNK_SIZE) + 1];
+                //let mut data = vec![0; width * CHUNK_SIZE];
                 println!("data buffer {}", data.len());
                 let mut cur = 0;
                 for row in rows.iter() {
                     for (x, color) in row.as_slice()[x..x+width].iter().rev().enumerate() {
                         let color: BinaryColor = color.into();
-                        /*
-                        data[cur] = data[cur] | ( if color.is_on() { 1 } else {0} ) << ((x % 8));
-                        if x % 8 == 7 {
+                        data[cur] = data[cur] | ( if color.is_on() { 1 } else {0} ) << ((x % 16));
+                        if x % 16 == 15 {
                             cur += 1;
                         }
-                         */
-                        data[cur] = if color.is_on() { 0 } else { 1 };
-                        cur += 1;
                     }
                 }
                 if let Err(err) = self.epd.load_image_area(
