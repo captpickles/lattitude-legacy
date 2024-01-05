@@ -139,7 +139,7 @@ pub mod epd {
             const CHUNK_SIZE: usize = 2;
 
             //let chunks = buffer.chunks(CHUNK_SIZE);
-            let chunks = &buffer[y..y + height].chunks(2);
+            let chunks = buffer.as_slice()[y..y + height].chunks(2);
 
             for (chunk, rows) in chunks.enumerate() {
                 let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
