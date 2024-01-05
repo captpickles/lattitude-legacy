@@ -1,8 +1,8 @@
-use std::time::Duration;
-use clap::{Args, Parser, Subcommand};
 use crate::data::DataSource;
 use crate::display::Display;
 use crate::paint::Paint;
+use clap::{Args, Parser, Subcommand};
+use std::time::Duration;
 
 #[derive(Debug, Clone, Parser)]
 #[command(
@@ -36,9 +36,11 @@ impl ClearCommand {
     }
 }
 
-
 #[derive(Args, Debug, Clone)]
-#[command(about = "Draw the splash screen", args_conflicts_with_subcommands = true)]
+#[command(
+    about = "Draw the splash screen",
+    args_conflicts_with_subcommands = true
+)]
 pub struct SplashCommand {}
 
 impl SplashCommand {
@@ -48,7 +50,6 @@ impl SplashCommand {
         Ok(())
     }
 }
-
 
 #[derive(Args, Debug, Clone)]
 #[command(about = "Draw the data screen", args_conflicts_with_subcommands = true)]
@@ -72,10 +73,10 @@ pub struct LoopCommand {}
 impl LoopCommand {
     pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error> {
         let mut display = Display::new(paint);
-        display.draw_clear_screen();
+        let _ = display.draw_clear_screen();
 
         let mut display = Display::new(paint);
-        display.draw_splash_screen();
+        let _ = display.draw_splash_screen();
 
         let ds = DataSource::new();
 
@@ -85,6 +86,6 @@ impl LoopCommand {
             display.draw_data_screen(data)?;
             tokio::time::sleep(Duration::from_secs(60)).await;
         }
-        Ok(())
+
     }
 }

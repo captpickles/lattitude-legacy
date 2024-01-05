@@ -1,24 +1,19 @@
-use clap::Parser;
-use serde::Deserialize;
-use crate::accuweather::AccuWeatherClient;
-use crate::calendar::CalendarClient;
 use crate::cli::{Cli, Command};
-use crate::data::DataSource;
-use crate::display::Display;
 use crate::paint::{NoOpPaint, Paint};
+use clap::Parser;
 
-mod netatmo;
-mod purple;
-mod display;
-mod graphics;
-mod font;
-mod data;
-pub mod art;
 mod accuweather;
+pub mod art;
 mod calendar;
-mod state;
 mod cli;
+mod data;
+mod display;
+mod font;
+mod graphics;
+mod netatmo;
 mod paint;
+mod purple;
+mod state;
 
 //pub const LAT: &str ="36.949817";
 //pub const LON: &str = "-81.077840";
@@ -59,8 +54,6 @@ async fn main() -> Result<(), anyhow::Error> {
 
      */
 
-
-
     Ok(())
 }
 
@@ -70,7 +63,7 @@ pub fn new_paint() -> impl Paint {
     EpdPaint::new()
 }
 
-#[cfg(not(feature="linux-embedded-hal"))]
+#[cfg(not(feature = "linux-embedded-hal"))]
 pub fn new_paint() -> impl Paint {
     NoOpPaint
 }

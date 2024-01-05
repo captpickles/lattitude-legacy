@@ -1,4 +1,4 @@
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Local};
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -72,7 +72,7 @@ pub struct Wind {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct WindSpeed {
-    pub value: f32
+    pub value: f32,
 }
 
 #[derive(Debug, Clone, Deserialize)]

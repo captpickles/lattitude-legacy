@@ -1,9 +1,9 @@
-use chrono::{DateTime, NaiveDate, NaiveDateTime, Utc};
 use crate::accuweather::daily_forecast::DailyForecast;
 use crate::accuweather::hourly_forecast::HourlyForecast;
 use crate::calendar::Event;
 use crate::netatmo::{Humidity, Pressure, Rain, Temperature, Wind};
 use crate::purple::Aqi;
+use chrono::{DateTime, Utc};
 
 pub struct DisplayData {
     pub time: DateTime<Utc>,

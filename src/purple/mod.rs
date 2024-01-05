@@ -1,21 +1,15 @@
-use serde_json::Value;
 use crate::purple::purple_data::Envelope;
 use crate::state::state;
 
 mod purple_data;
 
-
 const GET_SENSOR_DATA_URL: &str = "https://api.purpleair.com/v1/sensors";
 
-pub struct PurpleClient {
-
-}
+pub struct PurpleClient {}
 
 impl PurpleClient {
     pub fn new() -> Self {
-        Self {
-
-        }
+        Self {}
     }
 
     pub async fn get_aqi(&self) -> Result<Aqi, anyhow::Error> {
@@ -24,18 +18,14 @@ impl PurpleClient {
         let url = format!("{}/{}", GET_SENSOR_DATA_URL, state.sensor_index);
         let response = reqwest::Client::new()
             .get(url)
-            .query(
-                &[
-                    ("fields", "pm2.5,pm2.5_60minute,pm2.5_6hour,pm2.5_24hour")
-                ]
-            )
-            .header( "X-API-KEY", state.api_key)
+            .query(&[("fields", "pm2.5,pm2.5_60minute,pm2.5_6hour,pm2.5_24hour")])
+            .header("X-API-KEY", state.api_key)
             .send()
             .await?;
 
         let data: Envelope = response.json().await?;
 
-        Ok( Aqi {
+        Ok(Aqi {
             current: data.sensor.pm2_5,
             one_hour: data.sensor.stats.pm2_5_1hour,
             six_hour: data.sensor.stats.pm2_5_6hour,

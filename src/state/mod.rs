@@ -1,8 +1,7 @@
-use std::cell::RefCell;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::sync::RwLock;
-use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct State {
@@ -34,7 +33,7 @@ pub struct PurpleState {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AccuWeatherState {
-    pub api_key: String
+    pub api_key: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -42,14 +41,13 @@ pub struct CalendarState {
     pub urls: Vec<String>,
 }
 
-
 static STATE: RwLock<Option<State>> = RwLock::new(None);
 
 pub fn state() -> State {
     if STATE.read().unwrap().is_none() {
-        let mut config = File::open( "lattitude.toml").unwrap();
+        let mut config = File::open("lattitude.toml").unwrap();
         let mut data = String::new();
-        config.read_to_string(&mut data);
+        let _ = config.read_to_string(&mut data);
 
         let state: State = toml::from_str(&data).unwrap();
 
@@ -64,25 +62,22 @@ pub fn update_state<F: FnOnce(&mut State)>(updater: F) {
     updater(&mut state);
 
     let toml = toml::to_string_pretty(&state).unwrap();
-    let mut config = File::create( "latitude.toml").unwrap();
+    let mut config = File::create("latitude.toml").unwrap();
 
-    config.write_all(
-        &toml.as_bytes()
-    ).unwrap();
+    config.write_all(toml.as_bytes()).unwrap();
 
     STATE.write().unwrap().replace(state);
 }
 
-
 #[cfg(test)]
 mod test {
+    use crate::state::{state, update_state, State};
     use std::fs::File;
     use std::io::Read;
-    use crate::state::{State, state, update_state};
 
     #[test]
     fn load_state() {
-        let mut config = File::open( "latitude.toml").unwrap();
+        let mut config = File::open("latitude.toml").unwrap();
         let mut data = String::new();
         config.read_to_string(&mut data);
 
@@ -108,7 +103,5 @@ mod test {
         println!("{:#?}", state);
 
          */
-
     }
-
 }

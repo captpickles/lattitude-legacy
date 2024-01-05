@@ -1,35 +1,39 @@
-use anyhow::Error;
 use crate::graphics::Graphics;
+use anyhow::Error;
 
 pub trait Paint {
-
-    fn paint<const WIDTH: usize, const HEIGHT: usize>(&mut self, graphics: &Graphics<WIDTH, HEIGHT>) -> Result<(), anyhow::Error>;
-
+    fn paint<const WIDTH: usize, const HEIGHT: usize>(
+        &mut self,
+        graphics: &Graphics<WIDTH, HEIGHT>,
+    ) -> Result<(), anyhow::Error>;
 }
 
 pub struct NoOpPaint;
 
 impl Paint for NoOpPaint {
-    fn paint<const WIDTH: usize, const HEIGHT: usize>(&mut self, graphics: &Graphics<WIDTH, HEIGHT>) -> Result<(), Error> {
+    fn paint<const WIDTH: usize, const HEIGHT: usize>(
+        &mut self,
+        _graphics: &Graphics<WIDTH, HEIGHT>,
+    ) -> Result<(), Error> {
         Ok(())
     }
 }
 
 #[cfg(feature = "linux-embedded-hal")]
 pub mod epd {
+    use crate::graphics::{Color, Graphics};
+    use crate::paint::Paint;
     use anyhow::Error;
     use embedded_graphics::pixelcolor::{Gray4, GrayColor};
     use it8951::interface::IT8951SPIInterface;
-    use it8951::{AreaImgInfo, IT8951, memory_converter_settings, Run};
     use it8951::memory_converter_settings::MemoryConverterSetting;
-    use crate::graphics::{Color, Graphics};
-    use crate::paint::Paint;
+    use it8951::{memory_converter_settings, AreaImgInfo, Run, IT8951};
     use linux_embedded_hal::gpio_cdev::{Chip, LineRequestFlags};
     use linux_embedded_hal::spidev::{SpiModeFlags, SpidevOptions};
     use linux_embedded_hal::{CdevPin, Delay, Spidev};
 
     pub struct EpdPaint {
-        pub epd:  IT8951<IT8951SPIInterface<Spidev, CdevPin, CdevPin, Delay>, Run>,
+        pub epd: IT8951<IT8951SPIInterface<Spidev, CdevPin, CdevPin, Delay>, Run>,
     }
 
     impl EpdPaint {
@@ -45,25 +49,29 @@ pub mod epd {
             let mut chip = Chip::new("/dev/gpiochip0").expect("open GPIO");
             // RST: 17
             let rst_output = chip.get_line(17).expect("line 17: rst output");
-            let rst_output_handle = rst_output.request(LineRequestFlags::OUTPUT, 0, "meeting-room").expect("line 17: rst handle");
+            let rst_output_handle = rst_output
+                .request(LineRequestFlags::OUTPUT, 0, "meeting-room")
+                .expect("line 17: rst handle");
             let rst = CdevPin::new(rst_output_handle).expect("line 17: rst");
             // BUSY / HDRY: 24
             let busy_input = chip.get_line(24).expect("line 24: busy input");
-            let busy_input_handle = busy_input.request(LineRequestFlags::INPUT, 0, "meeting-room").expect("line 24: busy handle");
+            let busy_input_handle = busy_input
+                .request(LineRequestFlags::INPUT, 0, "meeting-room")
+                .expect("line 24: busy handle");
             let busy = CdevPin::new(busy_input_handle).expect("line 24: busy");
 
             let driver = it8951::interface::IT8951SPIInterface::new(spi, busy, rst, Delay);
             let mut epd = it8951::IT8951::new(driver).init(1550).unwrap();
 
-            Self {
-                epd
-            }
+            Self { epd }
         }
     }
 
     impl Paint for EpdPaint {
-        fn paint<const WIDTH: usize, const HEIGHT: usize>(&mut self, graphics: &Graphics<WIDTH, HEIGHT>) -> Result<(), Error> {
-
+        fn paint<const WIDTH: usize, const HEIGHT: usize>(
+            &mut self,
+            graphics: &Graphics<WIDTH, HEIGHT>,
+        ) -> Result<(), Error> {
             let buffer = graphics.pixels.borrow();
 
             const CHUNK_SIZE: usize = 2;
@@ -71,7 +79,7 @@ pub mod epd {
             let chunks = buffer.chunks(CHUNK_SIZE);
 
             for (chunk, rows) in chunks.enumerate() {
-                let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE)/4];
+                let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
                 let mut cur = 0;
                 for row in rows.iter() {
                     for (x, color) in row.iter().rev().enumerate() {
@@ -85,8 +93,10 @@ pub mod epd {
                 if let Err(err) = self.epd.load_image_area(
                     self.epd.get_dev_info().memory_address,
                     MemoryConverterSetting {
-                        endianness: memory_converter_settings::MemoryConverterEndianness::LittleEndian,
-                        bit_per_pixel: memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
+                        endianness:
+                            memory_converter_settings::MemoryConverterEndianness::LittleEndian,
+                        bit_per_pixel:
+                            memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
                         rotation: memory_converter_settings::MemoryConverterRotation::Rotate270,
                     },
                     &AreaImgInfo {
@@ -101,7 +111,9 @@ pub mod epd {
                 }
             }
 
-            self.epd.display(it8951::WaveformMode::GrayscaleClearing16).unwrap();
+            self.epd
+                .display(it8951::WaveformMode::GrayscaleClearing16)
+                .unwrap();
             Ok(())
         }
     }
@@ -124,9 +136,8 @@ pub mod epd {
                 Color::Gray12 => Gray4::new(12),
                 Color::Gray13 => Gray4::new(13),
                 Color::Gray14 => Gray4::new(14),
-                Color::White => Gray4::new(15)
+                Color::White => Gray4::new(15),
             }
         }
     }
-
 }

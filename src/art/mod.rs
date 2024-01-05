@@ -54,7 +54,6 @@ pub fn moon_waning_crescent() -> Result<Image, anyhow::Error> {
     Ok(bmp::open("art/moon/waning-crescent.bmp")?)
 }
 
-
 pub fn arrow_up() -> Result<Image, anyhow::Error> {
     Ok(bmp::open("art/arrow/arrow-up.bmp")?)
 }
@@ -88,5 +87,4 @@ pub mod wind {
     pub fn gust() -> Result<Image, anyhow::Error> {
         Ok(bmp::open("art/wind/gust.bmp")?)
     }
-
 }
