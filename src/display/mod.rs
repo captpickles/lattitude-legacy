@@ -636,6 +636,7 @@ impl<'p, P: Paint> Display<'p, P> {
 
         let mut hour = local.hour();
         let minute = local.minute();
+        let second = local.second();
 
         let mut ampm = "a";
 
@@ -656,7 +657,7 @@ impl<'p, P: Paint> Display<'p, P> {
             Darkness::Dark,
         );
 
-        let time = format!("{}:{:0>2}{ampm}", hour, minute);
+        let time = format!("{}:{:0>2}:{:0>2}{ampm}", hour, minute, second);
         vp.text(
             &time,
             FONT_SIZE,
