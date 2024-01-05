@@ -168,9 +168,9 @@ pub mod epd {
                     },
                     &AreaImgInfo {
                         area_x: x as u16,
-                        area_y: y as u16,
+                        area_y: (chunk * CHUNK_SIZE) as u16,
                         area_w: width as u16,
-                        area_h: height as u16,
+                        area_h: rows.len() as u16,
                     },
                     &data,
                 ) {
