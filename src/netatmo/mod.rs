@@ -1,6 +1,5 @@
 #![allow(unused)]
 
-use std::os::macos::raw::stat;
 use crate::netatmo::station_data::Envelope;
 use crate::state::{state, update_state};
 use serde::Deserialize;
