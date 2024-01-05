@@ -135,7 +135,7 @@ pub mod epd {
             (origin_x, origin_y): (usize, usize),
             (width, height): (usize, usize),
         ) -> Result<(), Error> {
-            println!("PARTIAL {},{} -> {},{}", origin_x, origin_y, width, height);
+            //println!("PARTIAL {},{} -> {},{}", origin_x, origin_y, width, height);
             let buffer = graphics.pixels.borrow();
 
             const CHUNK_SIZE: usize = 2;
@@ -167,7 +167,7 @@ pub mod epd {
                          */
                     }
                 }
-                println!("paint {},{} {},{}", origin_x, origin_y + (chunk * CHUNK_SIZE), width, rows.len());
+                //println!("paint {},{} {},{}", origin_x, origin_y + (chunk * CHUNK_SIZE), width, rows.len());
                 if let Err(err) = self.epd.load_image_area(
                     self.epd.get_dev_info().memory_address,
                     MemoryConverterSetting {

@@ -597,6 +597,7 @@ impl<'p, P: Paint> Display<'p, P> {
     }
 
     pub fn draw_header_only(&mut self, time: DateTime<Utc>) -> Result<(), anyhow::Error> {
+        println!("{:?}", time);
         self.header(time)?;
         self.paint_partial((0,0), (WIDTH, 76))?;
         Ok(())
