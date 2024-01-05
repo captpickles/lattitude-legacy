@@ -35,7 +35,7 @@ pub mod epd {
     use crate::graphics::{Color, Graphics};
     use crate::paint::Paint;
     use anyhow::Error;
-    use embedded_graphics::pixelcolor::{Gray4, GrayColor};
+    use embedded_graphics::pixelcolor::{BinaryColor, Gray4, GrayColor};
     use it8951::interface::IT8951SPIInterface;
     use it8951::memory_converter_settings::MemoryConverterSetting;
     use it8951::{memory_converter_settings, AreaImgInfo, Run, IT8951};
@@ -145,14 +145,14 @@ pub mod epd {
 
             for (chunk, rows) in chunks.enumerate() {
                 //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
-                let mut data = vec![0; width * CHUNK_SIZE];
+                let mut data = vec![0; (width / 8) * CHUNK_SIZE];
                 println!("data buffer {}", data.len());
                 let mut cur = 0;
                 for row in rows.iter() {
                     for (x, color) in row.as_slice()[x..x+width].iter().rev().enumerate() {
-                        let color: Gray4 = color.into();
-                        data[cur] = data[cur] | (color.luma() as u16) << ((x % 4) * 4);
-                        if x % 4 == 3 {
+                        let color: BinaryColor = color.into();
+                        data[cur] = data[cur] | ( if color.is_on() { 1 } else {0} ) << ((x % 8) * 8);
+                        if x % 8 == 7 {
                             cur += 1;
                         }
                     }
@@ -163,12 +163,12 @@ pub mod epd {
                         endianness:
                         memory_converter_settings::MemoryConverterEndianness::LittleEndian,
                         bit_per_pixel:
-                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
+                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel8,
                         rotation: memory_converter_settings::MemoryConverterRotation::Rotate270,
                     },
                     &AreaImgInfo {
                         area_x: x as u16,
-                        area_y: (chunk * CHUNK_SIZE) as u16,
+                        area_y: (y + (chunk * CHUNK_SIZE)) as u16,
                         area_w: width as u16,
                         area_h: rows.len() as u16,
                     },
