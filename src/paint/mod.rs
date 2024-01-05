@@ -145,15 +145,18 @@ pub mod epd {
 
             for (chunk, rows) in chunks.enumerate() {
                 //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
-                let mut data = vec![0; ((width / 4) * CHUNK_SIZE) + 1];
+                let mut data = vec![256; ((width / 8) * CHUNK_SIZE) + 1];
                 //let mut data = vec![0; width * CHUNK_SIZE];
                 //println!("data buffer {}", data.len());
                 let mut cur = 0;
                 for row in rows.iter() {
                     for (x, color) in row.as_slice()[origin_x..origin_x + width].iter().rev().enumerate() {
                         let color: BinaryColor = color.into();
-                        data[cur] = data[cur] | (if color.is_on() { 1 } else { 0 }) << ((x % 16));
-                        if x % 16 == 15 {
+                        if color.is_on() {
+                            data[cur] = data[cur] & 0 << (2 * (x % 8));
+                            data[cur] = data[cur] & 0 << ((2 * (x % 8)) + 1);
+                        }
+                        if x % 8 == 7 {
                             cur += 1;
                         }
                         /*
@@ -162,7 +165,6 @@ pub mod epd {
                             cur += 1;
                         }
                          */
-
                     }
                 }
                 println!("paint {},{} {},{}", origin_x, origin_y + (chunk * CHUNK_SIZE), width, rows.len());
@@ -172,7 +174,7 @@ pub mod epd {
                         endianness:
                         memory_converter_settings::MemoryConverterEndianness::LittleEndian,
                         bit_per_pixel:
-                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel8,
+                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel2,
                         rotation: memory_converter_settings::MemoryConverterRotation::Rotate270,
                     },
                     &AreaImgInfo {
