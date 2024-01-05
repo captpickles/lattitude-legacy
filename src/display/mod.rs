@@ -1,10 +1,6 @@
 use crate::accuweather::daily_forecast::DailyForecast;
 use crate::accuweather::hourly_forecast::HourlyForecast;
-use crate::art::{
-    aqi, arrow_down, arrow_level, arrow_small_down, arrow_small_up, arrow_up, logo,
-    moon_first_quarter, moon_full, moon_new, moon_third_quarter, moon_waning_crescent,
-    moon_waning_gibbous, moon_waxing_crescent, moon_waxing_gibbous, weather, wind,
-};
+use crate::art::{aqi, arrow_down, arrow_level, arrow_small_down, arrow_small_up, arrow_up, logo, moon_first_quarter, moon_full, moon_new, moon_third_quarter, moon_waning_crescent, moon_waning_gibbous, moon_waxing_crescent, moon_waxing_gibbous, usb, weather, wind};
 use crate::calendar::Event;
 use crate::data::data::{DisplayData, NowData};
 use crate::font::{sanserif, sanserif_bold, typewriter, typewriter_bold};
@@ -14,7 +10,7 @@ use crate::graphics::{
 use crate::netatmo::Trend;
 use crate::paint::Paint;
 use bmp::Image;
-use chrono::{DateTime, Datelike, Days, Local, Timelike, Weekday};
+use chrono::{DateTime, Datelike, Local, Timelike, Weekday, Utc};
 use glyph_brush_layout::{HorizontalAlign, VerticalAlign};
 use std::env;
 
@@ -42,11 +38,61 @@ impl<'p, P: Paint> Display<'p, P> {
         self.paint.paint(&self.graphics)
     }
 
-    pub fn draw_splash_screen(&mut self) -> Result<(), anyhow::Error> {
-        self.graphics.default_viewport().shift_down(1400).bmp(
-            &trim_bmp(&logo()?),
+    pub fn paint_partial(&mut self, origin: (usize, usize), dimensions: (usize, usize)) -> Result<(), anyhow::Error> {
+        let bmp = self.graphics.to_bmp();
+        let res = env::current_dir().unwrap();
+        let res = res.join("lattitude.bmp");
+        let _ = bmp.save(res);
+        self.paint.paint_partial(&self.graphics, origin, dimensions)
+        //self.paint.paint(&self.graphics)
+    }
+    pub fn draw_unbox_screen(&mut self) -> Result<(), anyhow::Error> {
+        self.graphics.default_viewport().shift_down(400).bmp(
+            &trim_bmp(&usb()?),
             HorizontalAlign::Center,
             VerticalAlign::Top,
+        );
+        self.graphics.default_viewport().shift_down(600).text(
+            "plug me in.",
+            48.0,
+            &typewriter()?,
+            HorizontalAlign::Center,
+            VerticalAlign::Top,
+            Darkness::Medium,
+        );
+
+        self.graphics.default_viewport().shift_down(1300).bmp(
+            &trim_bmp(&lighten_bmp(&logo()?, 0.5, false)),
+            HorizontalAlign::Center,
+            VerticalAlign::Top,
+        );
+
+        self.graphics.default_viewport().shift_down(1700).text(
+            "\"always innovative; sometimes overly ambitious\"",
+            44.0,
+            &sanserif_bold()?,
+            HorizontalAlign::Center,
+            VerticalAlign::Top,
+            Darkness::Medium,
+        );
+
+        self.paint()
+    }
+
+    pub fn draw_splash_screen(&mut self) -> Result<(), anyhow::Error> {
+        self.graphics.default_viewport().shift_down(1300).bmp(
+            &trim_bmp(&lighten_bmp(&logo()?, 0.5, false)),
+            HorizontalAlign::Center,
+            VerticalAlign::Top,
+        );
+
+        self.graphics.default_viewport().shift_down(1700).text(
+            "Domestic Info Hub Division",
+            24.0,
+            &typewriter_bold()?,
+            HorizontalAlign::Center,
+            VerticalAlign::Top,
+            Darkness::Medium,
         );
 
         self.graphics.default_viewport().shift_down(1800).text(
@@ -87,7 +133,7 @@ impl<'p, P: Paint> Display<'p, P> {
         Ok(())
     }
 
-    pub fn draw_data_screen(&mut self, data: DisplayData) -> Result<(), anyhow::Error> {
+    pub fn draw_data_screen(&mut self, data: &DisplayData, time: DateTime<Utc>) -> Result<(), anyhow::Error> {
         let viewport = self.graphics.viewport((10, 32), (1400, 300));
         self.current(viewport, &data.now)?;
 
@@ -97,7 +143,7 @@ impl<'p, P: Paint> Display<'p, P> {
 
         self.daily_forecast(&data)?;
 
-        self.header(&data)?;
+        self.header(time)?;
 
         self.paint()?;
 
@@ -550,7 +596,13 @@ impl<'p, P: Paint> Display<'p, P> {
         Ok(())
     }
 
-    fn header(&self, data: &DisplayData) -> Result<(), anyhow::Error> {
+    pub fn draw_header_only(&mut self, time: DateTime<Utc>) -> Result<(), anyhow::Error> {
+        self.header(time)?;
+        self.paint_partial((0,0), (WIDTH, 76))?;
+        Ok(())
+    }
+
+    fn header(&self, time: DateTime<Utc>) -> Result<(), anyhow::Error> {
         const FONT_SIZE: f32 = 36.0;
 
         let vp = self
@@ -560,7 +612,7 @@ impl<'p, P: Paint> Display<'p, P> {
             .padded_right(30)
             .shift_down(30);
 
-        let local: DateTime<Local> = DateTime::from(data.time);
+        let local: DateTime<Local> = DateTime::from(time);
 
         let day_name = day_name(local.weekday());
 
@@ -589,9 +641,10 @@ impl<'p, P: Paint> Display<'p, P> {
 
         if hour >= 12 {
             ampm = "p";
+            if hour > 12 {
+                hour = hour - 12
+            }
         }
-
-        hour %= 12;
 
         let date = format!("{}, {} {}", day_name, day, month);
         vp.text(

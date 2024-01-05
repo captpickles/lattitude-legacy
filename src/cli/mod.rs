@@ -1,8 +1,11 @@
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use crate::data::DataSource;
 use crate::display::Display;
 use crate::paint::Paint;
 use clap::{Args, Parser, Subcommand};
 use std::time::Duration;
+use chrono::{Local, Utc};
 
 #[derive(Debug, Clone, Parser)]
 #[command(
@@ -19,6 +22,7 @@ pub struct Cli {
 #[derive(Debug, Clone, Subcommand)]
 pub enum Command {
     Clear(ClearCommand),
+    Unbox(UnboxCommand),
     Splash(SplashCommand),
     Screen(ScreenCommand),
     Loop(LoopCommand),
@@ -38,8 +42,23 @@ impl ClearCommand {
 
 #[derive(Args, Debug, Clone)]
 #[command(
-    about = "Draw the splash screen",
-    args_conflicts_with_subcommands = true
+about = "Draw the unboxing screen",
+args_conflicts_with_subcommands = true
+)]
+pub struct UnboxCommand {}
+
+impl UnboxCommand {
+    pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error> {
+        let mut display = Display::new(paint);
+        display.draw_unbox_screen()?;
+        Ok(())
+    }
+}
+
+#[derive(Args, Debug, Clone)]
+#[command(
+about = "Draw the splash screen",
+args_conflicts_with_subcommands = true
 )]
 pub struct SplashCommand {}
 
@@ -61,7 +80,7 @@ impl ScreenCommand {
         let data = ds.get().await?;
 
         let mut display = Display::new(paint);
-        display.draw_data_screen(data)?;
+        display.draw_data_screen(&data, Utc::now())?;
         Ok(())
     }
 }
@@ -80,12 +99,29 @@ impl LoopCommand {
 
         let ds = DataSource::new();
 
-        loop {
-            let data = ds.get().await?;
-            let mut display = Display::new(paint);
-            display.draw_data_screen(data)?;
-            tokio::time::sleep(Duration::from_secs(60)).await;
-        }
+        //let mut prev_data = None;
 
+        loop {
+
+            /*
+            let data = ds.get().await?;
+            if let Some(prev_data) = &prev_data {
+                if *prev_data == data {
+                    println!("no redraw");
+                    continue;
+                }
+            }
+
+
+            println!("redraw");
+            let mut display = Display::new(paint);
+            display.draw_data_screen(&data, time)?;
+            prev_data.replace(data);
+            tokio::time::sleep(Duration::from_secs(10)).await;
+             */
+            let mut display = Display::new(paint);
+            display.draw_header_only(Utc::now())?;
+            tokio::time::sleep(Duration::from_secs(1)).await;
+        }
     }
 }

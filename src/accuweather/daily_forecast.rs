@@ -1,3 +1,4 @@
+use std::hash::{Hash, Hasher};
 use chrono::{DateTime, Local};
 use serde::Deserialize;
 
@@ -7,7 +8,7 @@ pub struct Envelope {
     pub daily_forecasts: Vec<DailyForecast>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Hash, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct DailyForecast {
     pub date: DateTime<Local>,
@@ -18,14 +19,14 @@ pub struct DailyForecast {
     pub night: Details,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Hash, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Sun {
     pub rise: DateTime<Local>,
     pub set: DateTime<Local>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Hash, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Moon {
     pub rise: Option<DateTime<Local>>,
@@ -33,20 +34,27 @@ pub struct Moon {
     pub phase: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Hash, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Temperature {
     pub minimum: TempValue,
     pub maximum: TempValue,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct TempValue {
     pub value: f32,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+impl Hash for TempValue {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write( &self.value.to_be_bytes())
+    }
+}
+
+
+#[derive(Debug, Clone, Deserialize, Hash, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Details {
     pub icon: u8,
@@ -62,46 +70,76 @@ pub struct Details {
     pub wind_gust: Wind,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Hash, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Wind {
     pub speed: WindSpeed,
     pub direction: WindDirection,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct WindSpeed {
     pub value: f32,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+impl Hash for WindSpeed {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write( &self.value.to_be_bytes())
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Hash, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct WindDirection {
     pub degrees: u16,
     pub localized: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct TotalLiquid {
     pub value: f32,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+impl Hash for TotalLiquid {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write( &self.value.to_be_bytes())
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Snow {
     pub value: f32,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+impl Hash for Snow {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write( &self.value.to_be_bytes())
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Rain {
     pub value: f32,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+impl Hash for Rain {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write( &self.value.to_be_bytes())
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, PartialEq)]
 #[serde(rename_all = "PascalCase")]
 pub struct Ice {
     pub value: f32,
+}
+
+impl Hash for Ice {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write( &self.value.to_be_bytes())
+    }
 }

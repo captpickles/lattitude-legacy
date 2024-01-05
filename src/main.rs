@@ -30,6 +30,9 @@ async fn main() -> Result<(), anyhow::Error> {
         Command::Clear(inner) => {
             inner.run(&mut paint).await?;
         }
+        Command::Unbox(inner) => {
+            inner.run(&mut paint).await?;
+        }
         Command::Splash(inner) => {
             inner.run(&mut paint).await?;
         }

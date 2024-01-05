@@ -1,3 +1,5 @@
+use clap::Parser;
+use crate::accuweather::daily_forecast::Snow;
 use crate::purple::purple_data::Envelope;
 use crate::state::state;
 
@@ -34,7 +36,7 @@ impl PurpleClient {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Aqi {
     pub current: f64,
     pub one_hour: f64,

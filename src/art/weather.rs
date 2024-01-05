@@ -1,11 +1,5 @@
 use bmp::Image;
 
-pub fn sunrise() -> Result<Image, anyhow::Error> {
-    println!("image:sunrise");
-    let image = bmp::open("art/icons8-sunrise-50.bmp")?;
-    Ok(image)
-}
-
 pub fn cloud_lightning() -> Result<Image, anyhow::Error> {
     Ok(bmp::open("art/weather/cloud-lightning.bmp")?)
 }

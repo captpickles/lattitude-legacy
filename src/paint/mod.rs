@@ -6,6 +6,13 @@ pub trait Paint {
         &mut self,
         graphics: &Graphics<WIDTH, HEIGHT>,
     ) -> Result<(), anyhow::Error>;
+
+    fn paint_partial<const WIDTH: usize, const HEIGHT: usize>(
+        &mut self,
+        graphics: &Graphics<WIDTH, HEIGHT>,
+        origin: (usize, usize),
+        dimensions: (usize, usize),
+    ) -> Result<(), anyhow::Error>;
 }
 
 pub struct NoOpPaint;
@@ -15,6 +22,10 @@ impl Paint for NoOpPaint {
         &mut self,
         _graphics: &Graphics<WIDTH, HEIGHT>,
     ) -> Result<(), Error> {
+        Ok(())
+    }
+
+    fn paint_partial<const WIDTH: usize, const HEIGHT: usize>(&mut self, graphics: &Graphics<WIDTH, HEIGHT>, origin: (usize, usize), dimensions: (usize, usize)) -> Result<(), Error> {
         Ok(())
     }
 }
@@ -94,9 +105,9 @@ pub mod epd {
                     self.epd.get_dev_info().memory_address,
                     MemoryConverterSetting {
                         endianness:
-                            memory_converter_settings::MemoryConverterEndianness::LittleEndian,
+                        memory_converter_settings::MemoryConverterEndianness::LittleEndian,
                         bit_per_pixel:
-                            memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
+                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
                         rotation: memory_converter_settings::MemoryConverterRotation::Rotate270,
                     },
                     &AreaImgInfo {
@@ -104,6 +115,58 @@ pub mod epd {
                         area_y: (chunk * CHUNK_SIZE) as u16,
                         area_w: crate::display::WIDTH as u16,
                         area_h: CHUNK_SIZE as u16,
+                    },
+                    &data,
+                ) {
+                    println!("{:#?}", err);
+                }
+            }
+
+            self.epd
+                .display(it8951::WaveformMode::GrayscaleClearing16)
+                .unwrap();
+            Ok(())
+        }
+
+        fn paint_partial<const WIDTH: usize, const HEIGHT: usize>(
+            &mut self,
+            graphics: &Graphics<WIDTH, HEIGHT>,
+            (x, y): (usize, usize),
+            (width, height): (usize, usize),
+        ) -> Result<(), Error> {
+            let buffer = graphics.pixels.borrow();
+
+            const CHUNK_SIZE: usize = 2;
+
+            //let chunks = buffer.chunks(CHUNK_SIZE);
+            let chunks = &buffer[y..y + height].chunks(2);
+
+            for (chunk, rows) in chunks.enumerate() {
+                let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
+                let mut cur = 0;
+                for row in rows[x..x+width].iter() {
+                    for (x, color) in row.iter().rev().enumerate() {
+                        let color: Gray4 = color.into();
+                        data[cur] = data[cur] | (color.luma() as u16) << ((x % 4) * 4);
+                        if x % 4 == 3 {
+                            cur += 1;
+                        }
+                    }
+                }
+                if let Err(err) = self.epd.load_image_area(
+                    self.epd.get_dev_info().memory_address,
+                    MemoryConverterSetting {
+                        endianness:
+                        memory_converter_settings::MemoryConverterEndianness::LittleEndian,
+                        bit_per_pixel:
+                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel4,
+                        rotation: memory_converter_settings::MemoryConverterRotation::Rotate270,
+                    },
+                    &AreaImgInfo {
+                        area_x: x as u16,
+                        area_y: y as u16,
+                        area_w: width as u16,
+                        area_h: height as u16,
                     },
                     &data,
                 ) {

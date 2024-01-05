@@ -5,14 +5,16 @@ use crate::netatmo::{Humidity, Pressure, Rain, Temperature, Wind};
 use crate::purple::Aqi;
 use chrono::{DateTime, Utc};
 
+#[derive(PartialEq)]
 pub struct DisplayData {
-    pub time: DateTime<Utc>,
+    //pub time: DateTime<Utc>,
     pub now: NowData,
     pub daily_forecast: Vec<DailyForecast>,
     pub hourly_forecast: Vec<HourlyForecast>,
     pub events: Vec<Event>,
 }
 
+#[derive(PartialEq)]
 pub struct NowData {
     pub temp: Option<Temperature>,
     pub humidity: Option<Humidity>,

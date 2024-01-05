@@ -784,6 +784,7 @@ dependencies = [
  "ab_glyph",
  "anyhow",
  "bmp",
+ "bytes",
  "chrono",
  "clap",
  "embedded-graphics",

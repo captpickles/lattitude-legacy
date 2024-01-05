@@ -1,9 +1,11 @@
 #![allow(unused)]
 
+use std::os::macos::raw::stat;
 use crate::netatmo::station_data::Envelope;
 use crate::state::{state, update_state};
 use serde::Deserialize;
 use serde_json::Value;
+use crate::accuweather::daily_forecast::Snow;
 
 mod station_data;
 
@@ -205,7 +207,7 @@ pub enum WeatherData {
     Pressure(Pressure),
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct Wind {
     #[serde(rename = "max_wind_str")]
     pub max_wind_strength: u16,
@@ -225,7 +227,7 @@ impl From<&Value> for Wind {
     }
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct Temperature {
     #[serde(rename = "Temperature")]
     pub temperature: Option<f32>,
@@ -240,7 +242,7 @@ impl From<&Value> for Temperature {
     }
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct Humidity {
     #[serde(rename = "Humidity")]
     pub humidity: f32,
@@ -253,7 +255,7 @@ impl From<&Value> for Humidity {
 }
 
 #[allow(unused)]
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct Rain {
     #[serde(rename = "Rain")]
     rain: f32,
@@ -267,7 +269,7 @@ impl From<&Value> for Rain {
     }
 }
 
-#[derive(Deserialize, Debug, Copy, Clone)]
+#[derive(Deserialize, Debug, Copy, Clone, PartialEq)]
 pub struct Noise {
     #[serde(rename = "Noise")]
     noise: u16,
@@ -279,7 +281,7 @@ impl From<&Value> for Noise {
     }
 }
 
-#[derive(Deserialize, Debug, Copy, Clone)]
+#[derive(Deserialize, Debug, Copy, Clone, PartialEq)]
 pub struct Co2 {
     #[serde(rename = "CO2")]
     co2: u16,
@@ -291,7 +293,7 @@ impl From<&Value> for Co2 {
     }
 }
 
-#[derive(Deserialize, Debug, Copy, Clone)]
+#[derive(Deserialize, Debug, Copy, Clone, PartialEq)]
 pub struct Pressure {
     #[serde(rename = "Pressure")]
     pressure: f32,
@@ -305,7 +307,7 @@ impl From<&Value> for Pressure {
     }
 }
 
-#[derive(Deserialize, Debug, Copy, Clone)]
+#[derive(Deserialize, Debug, Copy, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum Trend {
     Up,

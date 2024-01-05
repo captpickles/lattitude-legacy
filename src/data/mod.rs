@@ -154,7 +154,7 @@ impl DataSource {
 
     pub async fn get(&self) -> Result<DisplayData, anyhow::Error> {
         Ok(DisplayData {
-            time: Utc::now(),
+            //time: Utc::now(),
             now: self.get_now().await?,
             daily_forecast: self.get_daily_forecast().await?,
             hourly_forecast: self.get_hourly_forecast().await?,

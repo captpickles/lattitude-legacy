@@ -38,7 +38,7 @@ impl CalendarClient {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq)]
 pub struct Event {
     pub summary: String,
     pub date: NaiveDate,
