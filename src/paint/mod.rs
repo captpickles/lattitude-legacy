@@ -25,7 +25,7 @@ impl Paint for NoOpPaint {
         Ok(())
     }
 
-    fn paint_partial<const WIDTH: usize, const HEIGHT: usize>(&mut self, graphics: &Graphics<WIDTH, HEIGHT>, origin: (usize, usize), dimensions: (usize, usize)) -> Result<(), Error> {
+    fn paint_partial<const WIDTH: usize, const HEIGHT: usize>(&mut self, _graphics: &Graphics<WIDTH, HEIGHT>, _origin: (usize, usize), _dimensions: (usize, usize)) -> Result<(), Error> {
         Ok(())
     }
 }
@@ -145,7 +145,7 @@ pub mod epd {
                 //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
                 let mut data = vec![0; width * CHUNK_SIZE];
                 let mut cur = 0;
-                for row in rows[x..x+width].iter() {
+                for row in rows[0..width].iter() {
                     for (x, color) in row.iter().rev().enumerate() {
                         let color: Gray4 = color.into();
                         data[cur] = data[cur] | (color.luma() as u16) << ((x % 4) * 4);
