@@ -99,29 +99,30 @@ impl LoopCommand {
 
         let ds = DataSource::new();
 
-        //let mut prev_data = None;
+        let mut prev_data = None;
 
         loop {
 
-            /*
             let data = ds.get().await?;
+            /*
             if let Some(prev_data) = &prev_data {
                 if *prev_data == data {
                     println!("no redraw");
                     continue;
                 }
             }
-
-
             println!("redraw");
+
+             */
             let mut display = Display::new(paint);
-            display.draw_data_screen(&data, time)?;
+            display.draw_data_screen(&data, Utc::now())?;
             prev_data.replace(data);
             tokio::time::sleep(Duration::from_secs(10)).await;
-             */
+            /*
             let mut display = Display::new(paint);
             display.draw_header_only(Utc::now())?;
             tokio::time::sleep(Duration::from_secs(1)).await;
+             */
         }
     }
 }
