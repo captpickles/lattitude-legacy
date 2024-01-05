@@ -172,7 +172,7 @@ pub mod epd {
                         endianness:
                         memory_converter_settings::MemoryConverterEndianness::LittleEndian,
                         bit_per_pixel:
-                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel2,
+                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel8,
                         rotation: memory_converter_settings::MemoryConverterRotation::Rotate270,
                     },
                     &AreaImgInfo {
