@@ -132,33 +132,33 @@ pub mod epd {
         fn paint_partial<const WIDTH: usize, const HEIGHT: usize>(
             &mut self,
             graphics: &Graphics<WIDTH, HEIGHT>,
-            (x, y): (usize, usize),
+            (origin_x, origin_y): (usize, usize),
             (width, height): (usize, usize),
         ) -> Result<(), Error> {
-
-            println!("PARTIAL {},{} -> {},{}", x, y, width, height);
+            println!("PARTIAL {},{} -> {},{}", origin_x, origin_y, width, height);
             let buffer = graphics.pixels.borrow();
 
             const CHUNK_SIZE: usize = 2;
 
             //let chunks = buffer.chunks(CHUNK_SIZE);
-            let chunks = buffer.as_slice()[y..y + height].chunks(2);
+            let chunks = buffer.as_slice()[origin_y..origin_y + height].chunks(2);
 
             for (chunk, rows) in chunks.enumerate() {
                 //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
                 let mut data = vec![0; ((width / 8) * CHUNK_SIZE) + 1];
                 //let mut data = vec![0; width * CHUNK_SIZE];
-                println!("data buffer {}", data.len());
+                //println!("data buffer {}", data.len());
                 let mut cur = 0;
                 for row in rows.iter() {
-                    for (x, color) in row.as_slice()[x..x+width].iter().rev().enumerate() {
+                    for (x, color) in row.as_slice()[origin_x..origin_x + width].iter().rev().enumerate() {
                         let color: BinaryColor = color.into();
-                        data[cur] = data[cur] | ( if color.is_on() { 1 } else {0} ) << ((x % 16));
+                        data[cur] = data[cur] | (if color.is_on() { 1 } else { 0 }) << ((x % 16));
                         if x % 16 == 15 {
                             cur += 1;
                         }
                     }
                 }
+                println!("paint {},{} {},{}", origin_x, origin_y + (chunk * CHUNK_SIZE), width, rows.len());
                 if let Err(err) = self.epd.load_image_area(
                     self.epd.get_dev_info().memory_address,
                     MemoryConverterSetting {
@@ -169,8 +169,8 @@ pub mod epd {
                         rotation: memory_converter_settings::MemoryConverterRotation::Rotate270,
                     },
                     &AreaImgInfo {
-                        area_x: x as u16,
-                        area_y: (y + (chunk * CHUNK_SIZE)) as u16,
+                        area_x: origin_x as u16,
+                        area_y: (origin_y + (chunk * CHUNK_SIZE)) as u16,
                         area_w: width as u16,
                         area_h: rows.len() as u16,
                     },
