@@ -146,7 +146,7 @@ pub mod epd {
 
             for (chunk, rows) in chunks.enumerate() {
                 //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
-                let mut data = vec![0; (width / 8) * CHUNK_SIZE];
+                let mut data = vec![0; ((width / 8) * CHUNK_SIZE) + 1];
                 println!("data buffer {}", data.len());
                 let mut cur = 0;
                 for row in rows.iter() {
