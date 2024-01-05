@@ -179,7 +179,7 @@ pub mod epd {
             }
 
             self.epd
-                .display(it8951::WaveformMode::GrayscaleClearing16)
+                .display(it8951::WaveformMode::A2)
                 .unwrap();
             Ok(())
         }
