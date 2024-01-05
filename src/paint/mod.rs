@@ -145,7 +145,7 @@ pub mod epd {
 
             for (chunk, rows) in chunks.enumerate() {
                 //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
-                let mut data = vec![0; ((width / 8) * CHUNK_SIZE) + 1];
+                let mut data = vec![0; ((width / 16) * CHUNK_SIZE) + 1];
                 //let mut data = vec![0; width * CHUNK_SIZE];
                 //println!("data buffer {}", data.len());
                 let mut cur = 0;
@@ -153,9 +153,9 @@ pub mod epd {
                     for (x, color) in row.as_slice()[origin_x..origin_x + width].iter().rev().enumerate() {
                         let color: BinaryColor = color.into();
                         if color.is_off() {
-                            data[cur] = data[cur] | (1 << (2 * (x % 8)));
+                            data[cur] = data[cur] | (1 << (x % 16));
                         }
-                        if x % 8 == 7 {
+                        if x % 16 == 15 {
                             cur += 1;
                         }
                         /*
