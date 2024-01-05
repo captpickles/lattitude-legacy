@@ -152,7 +152,7 @@ pub mod epd {
                 for row in rows.iter() {
                     for (x, color) in row.as_slice()[origin_x..origin_x + width].iter().rev().enumerate() {
                         let color: BinaryColor = color.into();
-                        if color.if_off() {
+                        if color.is_off() {
                             data[cur] = data[cur] & 1 << (2 * (x % 8));
                             data[cur] = data[cur] & 1 << ((2 * (x % 8)) + 1);
                         }
