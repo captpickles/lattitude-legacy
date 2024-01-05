@@ -160,6 +160,7 @@ pub mod epd {
                         }
                          */
                         data[cur] = if color.is_on() { 0 } else { 1 };
+                        cur += 1;
                     }
                 }
                 if let Err(err) = self.epd.load_image_area(
