@@ -1,5 +1,6 @@
-use crate::graphics::Graphics;
+use crate::graphics::{Color, Graphics};
 use anyhow::Error;
+use embedded_graphics::pixelcolor::{BinaryColor, Gray4};
 
 pub trait Paint {
     fn paint<const WIDTH: usize, const HEIGHT: usize>(
@@ -205,6 +206,16 @@ pub mod epd {
                 Color::Gray14 => Gray4::new(14),
                 Color::White => Gray4::new(15),
             }
+        }
+    }
+}
+
+
+impl From<&Color> for BinaryColor {
+    fn from(value: &Color) -> Self {
+        match value {
+            Color::White => Self::Off,
+            _ => Self::On,
         }
     }
 }
