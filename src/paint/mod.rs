@@ -145,7 +145,7 @@ pub mod epd {
 
             for (chunk, rows) in chunks.enumerate() {
                 //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
-                let mut data = vec![0; ((width / 16) * CHUNK_SIZE) + 1];
+                let mut data = vec![0; ((width / 8) * CHUNK_SIZE) + 1];
                 //let mut data = vec![0; width * CHUNK_SIZE];
                 //println!("data buffer {}", data.len());
                 let mut cur = 0;
@@ -153,9 +153,9 @@ pub mod epd {
                     for (x, color) in row.as_slice()[origin_x..origin_x + width].iter().rev().enumerate() {
                         let color: BinaryColor = color.into();
                         if color.is_off() {
-                            data[cur] = data[cur] | (1 << (x % 16));
+                            data[cur] = data[cur] | (1 << (2 * (x % 8)));
                         }
-                        if x % 16 == 15 {
+                        if x % 8 == 7 {
                             cur += 1;
                         }
                         /*
@@ -173,7 +173,7 @@ pub mod epd {
                         endianness:
                         memory_converter_settings::MemoryConverterEndianness::LittleEndian,
                         bit_per_pixel:
-                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel8,
+                        memory_converter_settings::MemoryConverterBitPerPixel::BitsPerPixel2,
                         rotation: memory_converter_settings::MemoryConverterRotation::Rotate270,
                     },
                     &AreaImgInfo {
