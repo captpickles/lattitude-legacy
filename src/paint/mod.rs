@@ -145,16 +145,16 @@ pub mod epd {
 
             for (chunk, rows) in chunks.enumerate() {
                 //let mut data = [0; (crate::display::WIDTH * CHUNK_SIZE) / 4];
-                let mut data = vec![256; ((width / 8) * CHUNK_SIZE) + 1];
+                let mut data = vec![0; ((width / 8) * CHUNK_SIZE) + 1];
                 //let mut data = vec![0; width * CHUNK_SIZE];
                 //println!("data buffer {}", data.len());
                 let mut cur = 0;
                 for row in rows.iter() {
                     for (x, color) in row.as_slice()[origin_x..origin_x + width].iter().rev().enumerate() {
                         let color: BinaryColor = color.into();
-                        if color.is_on() {
-                            data[cur] = data[cur] & 0 << (2 * (x % 8));
-                            data[cur] = data[cur] & 0 << ((2 * (x % 8)) + 1);
+                        if color.if_off() {
+                            data[cur] = data[cur] & 1 << (2 * (x % 8));
+                            data[cur] = data[cur] & 1 << ((2 * (x % 8)) + 1);
                         }
                         if x % 8 == 7 {
                             cur += 1;
