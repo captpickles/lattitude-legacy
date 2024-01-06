@@ -117,7 +117,7 @@ impl LoopCommand {
             let mut display = Display::new(paint);
             display.draw_data_screen(&data, Utc::now())?;
             prev_data.replace(data);
-            tokio::time::sleep(Duration::from_secs(10)).await;
+            tokio::time::sleep(Duration::from_secs(60)).await;
             /*
             let mut display = Display::new(paint);
             display.draw_header_only(Utc::now())?;
