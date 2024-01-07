@@ -147,9 +147,10 @@ impl NetatmoClient {
                     for data_type in data_types {
                         if data_type.is_string() {
                             let data_type = data_type.as_str().unwrap();
-                            let dashboard_data = module.get("dashboard_data").unwrap();
-                            if let Some(result) = convert(data_type, dashboard_data) {
-                                netatmo_data.outside.push(result);
+                            if let Some(dashboard_data) = module.get("dashboard_data") {
+                                if let Some(result) = convert(data_type, dashboard_data) {
+                                    netatmo_data.outside.push(result);
+                                }
                             }
                         }
                     }
