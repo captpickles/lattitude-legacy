@@ -210,15 +210,15 @@ pub enum WeatherData {
 #[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct Wind {
     #[serde(rename = "max_wind_str")]
-    pub max_wind_strength: u16,
+    pub max_wind_strength: i16,
     #[serde(rename = "WindStrength")]
-    pub wind_strength: u16,
+    pub wind_strength: i16,
     #[serde(rename = "WindAngle")]
-    pub wind_angle: u16,
+    pub wind_angle: i16,
     #[serde(rename = "GustStrength")]
-    pub gust_strength: u16,
+    pub gust_strength: i16,
     #[serde(rename = "GustAngle")]
-    pub gust_angle: u16,
+    pub gust_angle: i16,
 }
 
 impl From<&Value> for Wind {
