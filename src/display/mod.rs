@@ -778,6 +778,7 @@ pub fn weather_icon(icon: u8) -> Option<Result<Image, anyhow::Error>> {
 fn wind_direction_icon(wind_angle: i16) -> Result<Image, anyhow::Error> {
     let wind = wind::wind()?;
 
+    let wind_angle = wind_angle + 180;
     let wind_angle = wind_angle % 360;
 
     if wind_angle < 90 {
@@ -790,6 +791,7 @@ fn wind_direction_icon(wind_angle: i16) -> Result<Image, anyhow::Error> {
 fn gust_direction_icon(wind_angle: i16) -> Result<Image, anyhow::Error> {
     let wind = wind::gust()?;
 
+    let wind_angle = wind_angle + 180;
     let wind_angle = wind_angle % 360;
 
     if wind_angle < 90 {
