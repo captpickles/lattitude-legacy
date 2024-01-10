@@ -113,7 +113,7 @@ impl<'p, P: Paint> Display<'p, P> {
         );
 
         self.graphics.default_viewport().shift_down(560).text(
-            "weather • time • aqi • calendar",
+            "weather • time • aqi • calendar • birds",
             56.0,
             &typewriter()?,
             HorizontalAlign::Center,
@@ -273,7 +273,7 @@ impl<'p, P: Paint> Display<'p, P> {
 
         for bird in birds {
             bird_vp.text(
-                &format!("•{}",bird),
+                &format!("• {}",bird),
                 30.0,
                 &typewriter()?,
                 HorizontalAlign::Left,
