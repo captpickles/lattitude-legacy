@@ -6,6 +6,7 @@ use crate::paint::Paint;
 use clap::{Args, Parser, Subcommand};
 use std::time::Duration;
 use chrono::{Local, Utc};
+use crate::birdnet::BirdNetClient;
 
 #[derive(Debug, Clone, Parser)]
 #[command(
@@ -26,6 +27,7 @@ pub enum Command {
     Splash(SplashCommand),
     Screen(ScreenCommand),
     Loop(LoopCommand),
+    Test(TestCommand),
 }
 
 #[derive(Args, Debug, Clone)]
@@ -124,5 +126,18 @@ impl LoopCommand {
             tokio::time::sleep(Duration::from_secs(1)).await;
              */
         }
+    }
+}
+
+
+#[derive(Args, Debug, Clone)]
+#[command(about = "Run whatever it is you're testing", args_conflicts_with_subcommands = true)]
+pub struct TestCommand;
+
+impl TestCommand {
+    pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error> {
+        let client = BirdNetClient::new();
+        client.recent_detections().await?;
+        Ok(())
     }
 }

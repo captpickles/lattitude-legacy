@@ -12,6 +12,7 @@ pub struct DisplayData {
     pub daily_forecast: Vec<DailyForecast>,
     pub hourly_forecast: Vec<HourlyForecast>,
     pub events: Vec<Event>,
+    pub birds: Vec<String>,
 }
 
 #[derive(PartialEq)]

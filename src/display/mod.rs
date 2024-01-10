@@ -4,15 +4,14 @@ use crate::art::{aqi, arrow_down, arrow_level, arrow_small_down, arrow_small_up,
 use crate::calendar::Event;
 use crate::data::data::{DisplayData, NowData};
 use crate::font::{sanserif, sanserif_bold, typewriter, typewriter_bold};
-use crate::graphics::{
-    lighten_bmp, rotate_bmp, trim_bmp, Color, Darkness, Graphics, Thickness, ViewPort,
-};
+use crate::graphics::{lighten_bmp, rotate_bmp, trim_bmp, Color, Darkness, Graphics, Thickness, ViewPort, scale_bmp};
 use crate::netatmo::Trend;
 use crate::paint::Paint;
 use bmp::Image;
 use chrono::{DateTime, Datelike, Local, Timelike, Weekday, Utc};
 use glyph_brush_layout::{HorizontalAlign, VerticalAlign};
 use std::env;
+use crate::graphics::Darkness::Dark;
 
 pub const WIDTH: usize = 1404;
 pub const HEIGHT: usize = 1872;
@@ -134,8 +133,8 @@ impl<'p, P: Paint> Display<'p, P> {
     }
 
     pub fn draw_data_screen(&mut self, data: &DisplayData, time: DateTime<Utc>) -> Result<(), anyhow::Error> {
-        let viewport = self.graphics.viewport((10, 32), (1400, 300));
-        self.current(viewport, &data.now)?;
+        let viewport = self.graphics.viewport((10, 20), (1400, 300));
+        self.current(viewport, &data.now, &data.birds)?;
 
         let viewport = self.graphics.default_viewport().shift_down(420);
 
@@ -154,14 +153,15 @@ impl<'p, P: Paint> Display<'p, P> {
         &self,
         viewport: ViewPort<'_, WIDTH, HEIGHT>,
         data: &NowData,
+        birds: &Vec<String>,
     ) -> Result<(), anyhow::Error> {
         //viewport.outline(Color::Black);
         if let Some(temp) = &data.temp {
-            let temp_vp = viewport.viewport((0, 90), (600, 250));
+            let temp_vp = viewport.viewport((0, 40), (600, 250));
             if let Some(temperature) = temp.temperature {
                 let rect = temp_vp.text(
                     &format!("{:.1}°", c_to_f(temperature as f64)),
-                    160.0,
+                    100.0,
                     &typewriter()?,
                     HorizontalAlign::Center,
                     VerticalAlign::Center,
@@ -201,17 +201,20 @@ impl<'p, P: Paint> Display<'p, P> {
         }
 
         if let Some(aqi_data) = &data.aqi {
-            let aqi_vp = viewport.viewport((550, 60), (300, 300));
+            let aqi_vp = viewport.viewport((400, 0), (300, 300));
 
             aqi_vp.bmp(
-                &lighten_bmp(&trim_bmp(&aqi()?), 0.22, false),
+                &scale_bmp(
+                    &lighten_bmp(&trim_bmp(&aqi()?), 0.22, false),
+                    0.5,
+                ),
                 HorizontalAlign::Center,
                 VerticalAlign::Center,
             );
 
             aqi_vp.text(
                 &format!("{:.0}", aqi_data.current),
-                140.0,
+                80.0,
                 &typewriter()?,
                 HorizontalAlign::Center,
                 VerticalAlign::Center,
@@ -220,37 +223,43 @@ impl<'p, P: Paint> Display<'p, P> {
         }
 
         if let Some(wind) = &data.wind {
-            let wind_vp = viewport.viewport((1060, 30), (300, 300));
+            let wind_vp = viewport.viewport((560, 110), (300, 300));
 
             wind_vp.bmp(
-                &lighten_bmp(
-                    &trim_bmp(&gust_direction_icon(wind.gust_angle)?),
-                    0.009,
-                    true,
+                &scale_bmp(
+                    &lighten_bmp(
+                        &trim_bmp(&gust_direction_icon(wind.gust_angle)?),
+                        0.009,
+                        true,
+                    ),
+                    0.7,
                 ),
                 HorizontalAlign::Center,
                 VerticalAlign::Center,
             );
 
             wind_vp.bmp(
-                &trim_bmp(&wind_direction_icon(wind.wind_angle)?),
+                &scale_bmp(
+                    &trim_bmp(&wind_direction_icon(wind.wind_angle)?),
+                    0.7,
+                ),
                 HorizontalAlign::Center,
                 VerticalAlign::Center,
             );
 
-            let windspeed_vp = viewport.viewport((900, 80), (300, 300));
+            let windspeed_vp = viewport.viewport((400, 160), (300, 300));
 
             let wind_speed = format!("{}-{}", wind.wind_strength, wind.max_wind_strength);
-            windspeed_vp.shift_down(40).text(
+            windspeed_vp.shift_down(50).text(
                 &wind_speed,
-                44.0,
+                40.0,
                 &typewriter_bold()?,
                 HorizontalAlign::Center,
                 VerticalAlign::Top,
                 Darkness::Dark,
             );
 
-            windspeed_vp.shift_down(110).text(
+            windspeed_vp.shift_down(100).text(
                 &format!("{}\nmph", wind.gust_strength),
                 30.0,
                 &typewriter()?,
@@ -258,6 +267,20 @@ impl<'p, P: Paint> Display<'p, P> {
                 VerticalAlign::Top,
                 Darkness::Light,
             );
+        }
+
+        let mut bird_vp = viewport.viewport((880, 100), (500, 300));
+
+        for bird in birds {
+            bird_vp.text(
+                &format!("•{}",bird),
+                30.0,
+                &typewriter()?,
+                HorizontalAlign::Left,
+                VerticalAlign::Top,
+                Darkness::Dark,
+            );
+            bird_vp = bird_vp.shift_down(36);
         }
 
         /*
@@ -497,13 +520,13 @@ impl<'p, P: Paint> Display<'p, P> {
         temp_vp
             .padded_right(min_rect.width() as usize + 10)
             .text(
-            &format!("{}°", forecast.temperature.maximum.value),
-            42.0,
-            &typewriter_bold()?,
-            HorizontalAlign::Right,
-            VerticalAlign::Center,
-            Darkness::Dark,
-        );
+                &format!("{}°", forecast.temperature.maximum.value),
+                42.0,
+                &typewriter_bold()?,
+                HorizontalAlign::Right,
+                VerticalAlign::Center,
+                Darkness::Dark,
+            );
 
         let rain_vp = stats_vp.viewport((170, 0), (200, 50));
 
@@ -523,7 +546,7 @@ impl<'p, P: Paint> Display<'p, P> {
             + forecast.day.ice.value
             + forecast.night.ice.value;
 
-        rain_vp.shift_right(prob_rect.width() as usize + 10 ).text(
+        rain_vp.shift_right(prob_rect.width() as usize + 10).text(
             &format!("{:.2}\"", total_precip),
             32.0,
             &typewriter()?,
@@ -599,7 +622,7 @@ impl<'p, P: Paint> Display<'p, P> {
     pub fn draw_header_only(&mut self, time: DateTime<Utc>) -> Result<(), anyhow::Error> {
         println!("{:?}", time);
         self.header(time)?;
-        self.paint_partial((0,0), (WIDTH, 76))?;
+        self.paint_partial((0, 0), (WIDTH, 76))?;
         Ok(())
     }
 

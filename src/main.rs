@@ -14,6 +14,7 @@ mod netatmo;
 mod paint;
 mod purple;
 mod state;
+mod birdnet;
 
 //pub const LAT: &str ="36.949817";
 //pub const LON: &str = "-81.077840";
@@ -40,6 +41,9 @@ async fn main() -> Result<(), anyhow::Error> {
             inner.run(&mut paint).await?;
         }
         Command::Loop(inner) => {
+            inner.run(&mut paint).await?;
+        }
+        Command::Test(inner) => {
             inner.run(&mut paint).await?;
         }
     }

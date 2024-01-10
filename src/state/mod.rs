@@ -10,6 +10,7 @@ pub struct State {
     pub purple: PurpleState,
     pub accuweather: AccuWeatherState,
     pub calendar: CalendarState,
+    pub birdnet: BirdNetState,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -39,6 +40,11 @@ pub struct AccuWeatherState {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CalendarState {
     pub urls: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct BirdNetState {
+    pub token: String,
 }
 
 static STATE: RwLock<Option<State>> = RwLock::new(None);

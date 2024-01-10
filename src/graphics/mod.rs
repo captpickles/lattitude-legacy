@@ -635,6 +635,22 @@ pub fn trim_bmp(image: &Image) -> Image {
     trimmed
 }
 
+pub fn scale_bmp(image: &Image, scale: f32) -> Image {
+    let mut scaled = Image::new((image.get_width() as f32 * scale) as u32, (image.get_height() as f32 * scale) as u32);
+
+    for x in 0..scaled.get_width() {
+        for y in 0..scaled.get_height() {
+            let scaled_x = (x as f32 * 1.0/scale) as u32;
+            let scaled_y = (y as f32 * 1.0/scale) as u32;
+
+            let pixel = image.get_pixel(scaled_x, scaled_y);
+            scaled.set_pixel(x,y, pixel);
+        }
+    }
+
+    scaled
+}
+
 pub fn rotate_bmp(image: &Image, degrees: f32) -> Image {
     let radians = (degrees * PI as f32) / 180.0;
 

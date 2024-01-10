@@ -9,6 +9,7 @@ use chrono::{DateTime, Duration, Utc};
 use std::cell::{RefCell};
 use std::future::Future;
 use std::pin::Pin;
+use crate::birdnet::BirdNetClient;
 
 #[allow(clippy::module_inception)]
 pub mod data;
@@ -51,6 +52,20 @@ pub struct DataSource {
     purple: CachedData<Aqi>,
     accuweather_daily: CachedData<Vec<DailyForecast>>,
     accuweather_hourly: CachedData<Vec<HourlyForecast>>,
+    birdnet: CachedData<Vec<String>>,
+}
+
+fn birdnet_cadence() -> Duration {
+    Duration::minutes(10)
+}
+
+fn fetch_birdnet() -> Pin<Box<dyn Future<Output = Result<Vec<String>, anyhow::Error>>>> {
+    Box::pin(async move {
+        println!("fetch birdnet");
+        let client = BirdNetClient::new();
+        let events = client.recent_detections().await?;
+        Ok(events)
+    })
 }
 
 fn calendar_cadence() -> Duration {
@@ -119,6 +134,12 @@ fn fetch_accuweather_hourly_forecast(
 impl DataSource {
     pub fn new() -> Self {
         Self {
+            birdnet: CachedData {
+                data: RefCell::new(None),
+                as_of: RefCell::new(None),
+                fetch: Box::new(fetch_birdnet),
+                cadence: Box::new(birdnet_cadence),
+            },
             calendar: CachedData {
                 data: RefCell::new(None),
                 as_of: RefCell::new(None),
@@ -159,6 +180,7 @@ impl DataSource {
             daily_forecast: self.get_daily_forecast().await?,
             hourly_forecast: self.get_hourly_forecast().await?,
             events: self.calendar.get().await?.unwrap_or(vec![]),
+            birds: self.birdnet.get().await?.unwrap_or(vec![]),
         })
     }
 
