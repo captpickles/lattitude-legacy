@@ -348,6 +348,17 @@ impl<'p, P: Paint> Display<'p, P> {
                 VerticalAlign::Top,
                 Darkness::Dark,
             );
+            hour_vp
+                .shift_down(32)
+                .text(
+                &format!("{}%", f.precipitation_probability),
+                24.0,
+                &sanserif_bold()?,
+                HorizontalAlign::Center,
+                VerticalAlign::Top,
+                Darkness::Light,
+            );
+
         }
 
         Ok(())
