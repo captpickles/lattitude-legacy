@@ -795,6 +795,7 @@ dependencies = [
  "it8951",
  "linux-embedded-hal",
  "log",
+ "regex",
  "reqwest",
  "serde",
  "serde_json",

@@ -1,5 +1,6 @@
 use crate::state::state;
 use chrono::{NaiveDate};
+use regex::Regex;
 
 pub struct CalendarClient {}
 
@@ -10,7 +11,9 @@ impl CalendarClient {
 
     pub async fn events(&self) -> Result<Vec<Event>, anyhow::Error> {
         let state = state().calendar;
-        let mut events = Vec::new();
+        let mut events: Vec<Event> = Vec::new();
+
+        let parens = Regex::new( "\\(.*\\)")?;
         for url in state.urls {
             let result = reqwest::Client::new().get(url).send().await?.text().await?;
 
@@ -24,10 +27,16 @@ impl CalendarClient {
                             let (date, _) =
                                 chrono::NaiveDate::parse_and_remainder(date, "%Y%m%d")
                                     .unwrap();
-                            events.push(Event {
-                                summary: summary.clone(),
-                                date,
-                            });
+                            let summary = parens.replace_all(summary, "");
+
+                            if events.iter().find(|e| {
+                                e.summary == summary && e.date == date
+                            }).is_none() {
+                                events.push(Event {
+                                    summary: summary.to_string(),
+                                    date,
+                                });
+                            }
                         }
                     }
                 }

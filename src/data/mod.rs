@@ -63,8 +63,8 @@ fn fetch_birdnet() -> Pin<Box<dyn Future<Output = Result<Vec<String>, anyhow::Er
     Box::pin(async move {
         println!("fetch birdnet");
         let client = BirdNetClient::new();
-        let events = client.recent_detections().await?;
-        Ok(events)
+        let birds = client.recent_detections().await?;
+        Ok(birds)
     })
 }
 

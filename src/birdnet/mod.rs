@@ -41,7 +41,7 @@ impl BirdNetClient {
                 detections.push( each.species.common_name.clone());
             }
 
-            if detections.len() > 5 {
+            if detections.len() >= 10 {
                 break;
             }
         }

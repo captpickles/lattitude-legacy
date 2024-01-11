@@ -136,7 +136,7 @@ impl<'p, P: Paint> Display<'p, P> {
         let viewport = self.graphics.viewport((10, 20), (1400, 300));
         self.current(viewport, &data.now, &data.birds)?;
 
-        let viewport = self.graphics.default_viewport().shift_down(420);
+        let viewport = self.graphics.default_viewport().shift_down(430);
 
         self.hourly_forecast(viewport, &data.hourly_forecast)?;
 
@@ -157,11 +157,11 @@ impl<'p, P: Paint> Display<'p, P> {
     ) -> Result<(), anyhow::Error> {
         //viewport.outline(Color::Black);
         if let Some(temp) = &data.temp {
-            let temp_vp = viewport.viewport((0, 40), (600, 250));
+            let temp_vp = viewport.viewport((0, 60), (600, 250));
             if let Some(temperature) = temp.temperature {
                 let rect = temp_vp.text(
                     &format!("{:.1}°", c_to_f(temperature as f64)),
-                    100.0,
+                    150.0,
                     &typewriter()?,
                     HorizontalAlign::Center,
                     VerticalAlign::Center,
@@ -201,7 +201,7 @@ impl<'p, P: Paint> Display<'p, P> {
         }
 
         if let Some(aqi_data) = &data.aqi {
-            let aqi_vp = viewport.viewport((400, 0), (300, 300));
+            let aqi_vp = viewport.viewport((0, 170), (200, 300));
 
             aqi_vp.bmp(
                 &scale_bmp(
@@ -223,7 +223,7 @@ impl<'p, P: Paint> Display<'p, P> {
         }
 
         if let Some(wind) = &data.wind {
-            let wind_vp = viewport.viewport((560, 110), (300, 300));
+            let wind_vp = viewport.viewport((560, 10), (300, 300));
 
             wind_vp.bmp(
                 &scale_bmp(
@@ -247,7 +247,7 @@ impl<'p, P: Paint> Display<'p, P> {
                 VerticalAlign::Center,
             );
 
-            let windspeed_vp = viewport.viewport((400, 160), (300, 300));
+            let windspeed_vp = viewport.viewport((560, 210), (300, 300));
 
             let wind_speed = format!("{}-{}", wind.wind_strength, wind.max_wind_strength);
             windspeed_vp.shift_down(50).text(
@@ -269,74 +269,20 @@ impl<'p, P: Paint> Display<'p, P> {
             );
         }
 
-        let mut bird_vp = viewport.viewport((880, 100), (500, 300));
+        let mut bird_vp = viewport.viewport((830, 100), (500, 300));
 
-        for bird in birds {
+        for bird in birds.iter().take(6) {
             bird_vp.text(
-                &format!("• {}",bird),
-                30.0,
+                bird,
+                28.0,
                 &typewriter()?,
-                HorizontalAlign::Left,
+                HorizontalAlign::Right,
                 VerticalAlign::Top,
                 Darkness::Dark,
             );
-            bird_vp = bird_vp.shift_down(36);
+            bird_vp = bird_vp.shift_down(38);
         }
 
-        /*
-        let viewport = self.graphics.default_viewport()
-            .shift_down(120)
-            .padded(40);
-
-        if let Some(aqi_data) = &data.now.aqi {
-            viewport.bmp((550, 100), &aqi()?);
-
-            viewport.text(
-                (670, 120),
-                &format!("{:.0}", aqi_data.current),
-                64.0,
-                &typewriter()?,
-                HorizontalAlign::Left);
-        }
-
-        if let Some(temp) = &data.now.temp {
-            viewport.text(
-                (100, 0),
-                &format!("{:.0}°", c_to_f(temp.temperature as f64)),
-                210.0,
-                &typewriter()?,
-                HorizontalAlign::Left);
-
-            let arrow = match temp.temp_trend {
-                Trend::Up => {
-                    arrow_up()?
-                }
-                Trend::Down => {
-                    arrow_down()?
-                }
-                Trend::Stable => {
-                    arrow_level()?
-                }
-            };
-
-            viewport.bmp((0, 60), &arrow);
-        }
-
-        if let Some(humidity) = &data.now.humidity {
-            viewport.text(
-                (120, 190),
-                &format!("{:.0}%", humidity.humidity),
-                64.0,
-                &typewriter()?,
-                HorizontalAlign::Left);
-        }
-
-
-        viewport.circle(
-            (1000, 120), 100, Thickness::Heavy, Color::Gray2,
-        );
-
-         */
         Ok(())
     }
 
@@ -530,30 +476,34 @@ impl<'p, P: Paint> Display<'p, P> {
 
         let rain_vp = stats_vp.viewport((170, 0), (200, 50));
 
-        let prob_rect = rain_vp.text(
-            &format!("{}%", forecast.day.precipitation_probability),
-            32.0,
-            &typewriter()?,
-            HorizontalAlign::Left,
-            VerticalAlign::Center,
-            Darkness::Dark,
-        );
+        if forecast.day.precipitation_probability > 0 {
+            let prob_rect = rain_vp.text(
+                &format!("{}%", forecast.day.precipitation_probability),
+                32.0,
+                &typewriter()?,
+                HorizontalAlign::Left,
+                VerticalAlign::Center,
+                Darkness::Dark,
+            );
 
-        let total_precip = forecast.day.snow.value
-            + forecast.night.snow.value
-            + forecast.day.rain.value
-            + forecast.night.rain.value
-            + forecast.day.ice.value
-            + forecast.night.ice.value;
+            let total_precip = forecast.day.snow.value
+                + forecast.night.snow.value
+                + forecast.day.rain.value
+                + forecast.night.rain.value
+                + forecast.day.ice.value
+                + forecast.night.ice.value;
 
-        rain_vp.shift_right(prob_rect.width() as usize + 10).text(
-            &format!("{:.2}\"", total_precip),
-            32.0,
-            &typewriter()?,
-            HorizontalAlign::Left,
-            VerticalAlign::Center,
-            Darkness::Light,
-        );
+            if total_precip > 0.0 {
+                rain_vp.shift_right(prob_rect.width() as usize + 10).text(
+                    &format!("{:.2}\"", total_precip),
+                    32.0,
+                    &typewriter()?,
+                    HorizontalAlign::Left,
+                    VerticalAlign::Center,
+                    Darkness::Light,
+                );
+            }
+        }
 
         let sun_vp = viewport.viewport((0, 0), (100, 150));
 
@@ -601,10 +551,12 @@ impl<'p, P: Paint> Display<'p, P> {
         let todays_events: Vec<_> = events
             .iter()
             .filter(|e| e.date == forecast.date.date_naive())
+            .take(5)
             .collect();
 
-        let mut event_vp = viewport.viewport((720, 0), (600, 100));
+        let mut event_vp = viewport.viewport((720, 0), (600, 200));
         for event in todays_events {
+            println!("event {:#?}", event);
             event_vp.text(
                 &format!("• {}", event.summary),
                 22.0,
@@ -613,7 +565,7 @@ impl<'p, P: Paint> Display<'p, P> {
                 VerticalAlign::Top,
                 Darkness::Dark,
             );
-            event_vp = event_vp.shift_down(26);
+            event_vp = event_vp.shift_down(24);
         }
 
         Ok(())
