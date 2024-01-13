@@ -51,7 +51,7 @@ static STATE: RwLock<Option<State>> = RwLock::new(None);
 
 pub fn state() -> State {
     if STATE.read().unwrap().is_none() {
-        let mut config = File::open("lattitude.toml").unwrap();
+        let mut config = File::open("lattitude.toml").expect("Missing lattitude.toml file!");
         let mut data = String::new();
         let _ = config.read_to_string(&mut data);
 
