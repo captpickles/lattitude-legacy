@@ -7,6 +7,7 @@ use clap::{Args, Parser, Subcommand};
 use std::time::Duration;
 use chrono::{Local, Utc};
 use crate::birdnet::BirdNetClient;
+use crate::state::state;
 
 #[derive(Debug, Clone, Parser)]
 #[command(
@@ -78,8 +79,9 @@ pub struct ScreenCommand {}
 
 impl ScreenCommand {
     pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error> {
+        let state = state();
         let ds = DataSource::new();
-        let data = ds.get().await?;
+        let data = ds.get(&state).await?;
 
         let mut display = Display::new(paint);
         display.draw_data_screen(&data, Utc::now())?;
@@ -93,6 +95,7 @@ pub struct LoopCommand {}
 
 impl LoopCommand {
     pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error> {
+        let state = state();
         let mut display = Display::new(paint);
         let _ = display.draw_clear_screen();
 
@@ -105,7 +108,7 @@ impl LoopCommand {
 
         loop {
 
-            let data = ds.get().await?;
+            let data = ds.get(&state).await?;
             /*
             if let Some(prev_data) = &prev_data {
                 if *prev_data == data {
@@ -136,8 +139,9 @@ pub struct TestCommand;
 
 impl TestCommand {
     pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error> {
+        let state = state();
         let client = BirdNetClient::new();
-        client.recent_detections().await?;
+        client.recent_detections(&state).await?;
         Ok(())
     }
 }

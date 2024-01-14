@@ -1,4 +1,4 @@
-use crate::state::state;
+use crate::state::{state, State};
 use chrono::{NaiveDate};
 use regex::Regex;
 
@@ -9,12 +9,12 @@ impl CalendarClient {
         Self {}
     }
 
-    pub async fn events(&self) -> Result<Vec<Event>, anyhow::Error> {
-        let state = state().calendar;
+    pub async fn events(&self, state: &State) -> Result<Vec<Event>, anyhow::Error> {
+        let state = &state.calendar;
         let mut events: Vec<Event> = Vec::new();
 
         let parens = Regex::new( "\\(.*\\)")?;
-        for url in state.urls {
+        for url in &state.urls {
             let result = reqwest::Client::new().get(url).send().await?.text().await?;
 
             let bytes = &*result.into_bytes();

@@ -6,7 +6,7 @@ pub mod hourly_forecast;
 use crate::accuweather::daily_forecast::DailyForecast;
 use crate::accuweather::hourly_forecast::HourlyForecast;
 use crate::accuweather::location::Location;
-use crate::state::state;
+use crate::state::{state, State};
 use std::cell::{RefCell};
 
 const GEOPOSITION_SEARCH_URL: &str =
@@ -25,9 +25,7 @@ impl AccuWeatherClient {
         }
     }
 
-    pub async fn get_location_key(&self) -> Result<String, anyhow::Error> {
-        let state = state();
-
+    pub async fn get_location_key(&self, state: &State) -> Result<String, anyhow::Error> {
         if let Some(location_key) = &*self.location_key.borrow() {
             return Ok(location_key.clone());
         }
@@ -35,10 +33,10 @@ impl AccuWeatherClient {
         let location: Location = reqwest::Client::new()
             .get(GEOPOSITION_SEARCH_URL)
             .query(&[
-                ("apikey", state.accuweather.api_key),
+                ("apikey", &state.accuweather.api_key),
                 (
                     "q",
-                    format!("{},{}", state.location.lat, state.location.lon),
+                    &format!("{},{}", state.location.lat, state.location.lon),
                 ),
             ])
             .send()
@@ -51,9 +49,8 @@ impl AccuWeatherClient {
         Ok(location.key)
     }
 
-    pub async fn daily_forecast(&self) -> Result<Vec<DailyForecast>, anyhow::Error> {
-        let state = state();
-        let location_key = self.get_location_key().await?;
+    pub async fn daily_forecast(&self, state: &State) -> Result<Vec<DailyForecast>, anyhow::Error> {
+        let location_key = self.get_location_key(&state).await?;
 
         let url = format!("{}/{}", DAILY_FORECAST_URL, location_key);
 
@@ -61,8 +58,8 @@ impl AccuWeatherClient {
             //let forecast: Value= reqwest::Client::new()
             .get(url)
             .query(&[
-                ("apikey", state.accuweather.api_key),
-                ("details", "true".to_string()),
+                ("apikey", &state.accuweather.api_key),
+                ("details", &"true".to_string()),
             ])
             .send()
             .await?
@@ -72,17 +69,16 @@ impl AccuWeatherClient {
         Ok(forecast.daily_forecasts)
     }
 
-    pub async fn hourly_forecasts(&self) -> Result<Vec<HourlyForecast>, anyhow::Error> {
-        let state = state();
-        let location_key = self.get_location_key().await?;
+    pub async fn hourly_forecasts(&self, state: &State) -> Result<Vec<HourlyForecast>, anyhow::Error> {
+        let location_key = self.get_location_key(&state).await?;
 
         let url = format!("{}/{}", HOURLY_FORECAST_URL, location_key);
 
         let forecast: hourly_forecast::Envelope = reqwest::Client::new()
             .get(url)
             .query(&[
-                ("apikey", state.accuweather.api_key),
-                ("details", "true".to_string()),
+                ("apikey", &state.accuweather.api_key),
+                ("details", &"true".to_string()),
             ])
             .send()
             .await?

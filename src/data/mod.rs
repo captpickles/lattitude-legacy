@@ -10,6 +10,7 @@ use std::cell::{RefCell};
 use std::future::Future;
 use std::pin::Pin;
 use crate::birdnet::BirdNetClient;
+use crate::state::{state, State};
 
 #[allow(clippy::module_inception)]
 pub mod data;
@@ -17,14 +18,14 @@ pub mod data;
 pub struct CachedData<T> {
     data: RefCell<Option<T>>,
     as_of: RefCell<Option<DateTime<Utc>>>,
-    fetch: Box<dyn Fn() -> Pin<Box<dyn Future<Output = Result<T, anyhow::Error>>>>>,
+    fetch: Box<dyn Fn(&State) -> Pin<Box<dyn Future<Output = Result<T, anyhow::Error>>>>>,
     cadence: Box<dyn Fn() -> Duration>,
 }
 
 impl<T: Clone> CachedData<T> {
-    pub async fn get(&self) -> Result<Option<T>, anyhow::Error> {
+    pub async fn get(&self, state: &State) -> Result<Option<T>, anyhow::Error> {
         if self.needs_fetch() {
-            let data = (self.fetch)().await.map(|inner| Some(inner))?;
+            let data = (self.fetch)(&state).await.map(|inner| Some(inner))?;
             self.as_of.borrow_mut().replace(Utc::now());
             *self.data.borrow_mut() = data;
         }
@@ -59,11 +60,12 @@ fn birdnet_cadence() -> Duration {
     Duration::minutes(10)
 }
 
-fn fetch_birdnet() -> Pin<Box<dyn Future<Output = Result<Vec<String>, anyhow::Error>>>> {
+fn fetch_birdnet(state: &State) -> Pin<Box<dyn Future<Output = Result<Vec<String>, anyhow::Error>>>> {
+    let state = state.clone();
     Box::pin(async move {
         println!("fetch birdnet");
         let client = BirdNetClient::new();
-        let birds = client.recent_detections().await?;
+        let birds = client.recent_detections(&state).await?;
         Ok(birds)
     })
 }
@@ -72,11 +74,12 @@ fn calendar_cadence() -> Duration {
     Duration::days(1)
 }
 
-fn fetch_calendar() -> Pin<Box<dyn Future<Output = Result<Vec<Event>, anyhow::Error>>>> {
+fn fetch_calendar(state: &State) -> Pin<Box<dyn Future<Output = Result<Vec<Event>, anyhow::Error>>>> {
+    let state = state.clone();
     Box::pin(async move {
         println!("fetch calendar");
         let client = calendar::CalendarClient::new();
-        let events = client.events().await?;
+        let events = client.events(&state).await?;
         Ok(events)
     })
 }
@@ -85,10 +88,11 @@ fn netatmo_cadence() -> Duration {
     Duration::minutes(15)
 }
 
-fn fetch_netatmo() -> Pin<Box<dyn Future<Output = Result<NetatmoData, anyhow::Error>>>> {
+fn fetch_netatmo(state: &State) -> Pin<Box<dyn Future<Output = Result<NetatmoData, anyhow::Error>>>> {
+    let state = state.clone();
     Box::pin(async move {
         println!("fetch netatmo");
-        let netatmo_client = netatmo::get_client().await?;
+        let netatmo_client = netatmo::get_client(&state).await?;
         let netatmo_data = netatmo_client.get_station_data().await?;
         Ok(netatmo_data)
     })
@@ -98,11 +102,12 @@ fn purple_cadence() -> Duration {
     Duration::hours(2)
 }
 
-fn fetch_purple() -> Pin<Box<dyn Future<Output = Result<Aqi, anyhow::Error>>>> {
+fn fetch_purple(state: &State) -> Pin<Box<dyn Future<Output = Result<Aqi, anyhow::Error>>>> {
+    let state = state.clone();
     Box::pin(async move {
         println!("fetch purple");
         let purple_client = purple::PurpleClient::new();
-        let aqi = purple_client.get_aqi().await?;
+        let aqi = purple_client.get_aqi(&state).await?;
         Ok(aqi)
     })
 }
@@ -111,22 +116,24 @@ pub fn accuweather_cadence() -> Duration {
     Duration::minutes(30)
 }
 
-fn fetch_accuweather_daily_forecast(
+fn fetch_accuweather_daily_forecast(state: &State
 ) -> Pin<Box<dyn Future<Output = Result<Vec<DailyForecast>, anyhow::Error>>>> {
+    let state = state.clone();
     Box::pin(async move {
         println!("fetch accuweather");
         let client = accuweather::AccuWeatherClient::new();
-        let forecast = client.daily_forecast().await?;
+        let forecast = client.daily_forecast(&state).await?;
         Ok(forecast)
     })
 }
 
-fn fetch_accuweather_hourly_forecast(
+fn fetch_accuweather_hourly_forecast(state: &State
 ) -> Pin<Box<dyn Future<Output = Result<Vec<HourlyForecast>, anyhow::Error>>>> {
+    let state = state.clone();
     Box::pin(async move {
         println!("fetch accuweather hourly");
         let client = accuweather::AccuWeatherClient::new();
-        let forecast = client.hourly_forecasts().await?;
+        let forecast = client.hourly_forecasts(&state).await?;
         Ok(forecast)
     })
 }
@@ -173,34 +180,34 @@ impl DataSource {
         }
     }
 
-    pub async fn get(&self) -> Result<DisplayData, anyhow::Error> {
+    pub async fn get(&self, state: &State) -> Result<DisplayData, anyhow::Error> {
         Ok(DisplayData {
             //time: Utc::now(),
-            now: self.get_now().await?,
-            daily_forecast: self.get_daily_forecast().await?,
-            hourly_forecast: self.get_hourly_forecast().await?,
-            events: self.calendar.get().await?.unwrap_or(vec![]),
-            birds: self.birdnet.get().await?.unwrap_or(vec![]),
+            now: self.get_now(&state).await?,
+            daily_forecast: self.get_daily_forecast(&state).await?,
+            hourly_forecast: self.get_hourly_forecast(&state).await?,
+            events: self.calendar.get(&state).await?.unwrap_or(vec![]),
+            birds: self.birdnet.get(&state).await?.unwrap_or(vec![]),
         })
     }
 
-    async fn get_daily_forecast(&self) -> Result<Vec<DailyForecast>, anyhow::Error> {
-        if let Some(forecast) = self.accuweather_daily.get().await? {
+    async fn get_daily_forecast(&self, state: &State) -> Result<Vec<DailyForecast>, anyhow::Error> {
+        if let Some(forecast) = self.accuweather_daily.get(&state).await? {
             Ok(forecast)
         } else {
             Ok(vec![])
         }
     }
 
-    async fn get_hourly_forecast(&self) -> Result<Vec<HourlyForecast>, anyhow::Error> {
-        if let Some(forecast) = self.accuweather_hourly.get().await? {
+    async fn get_hourly_forecast(&self, state: &State) -> Result<Vec<HourlyForecast>, anyhow::Error> {
+        if let Some(forecast) = self.accuweather_hourly.get(&state).await? {
             Ok(forecast)
         } else {
             Ok(vec![])
         }
     }
 
-    async fn get_now(&self) -> Result<NowData, anyhow::Error> {
+    async fn get_now(&self, state: &State) -> Result<NowData, anyhow::Error> {
         let mut now_data = NowData {
             temp: None,
             humidity: None,
@@ -210,7 +217,7 @@ impl DataSource {
             aqi: None,
         };
 
-        if let Some(netatmo) = self.netatmo.get().await? {
+        if let Some(netatmo) = self.netatmo.get(&state).await? {
             now_data.temp = netatmo.outside_temp();
             now_data.wind = netatmo.wind();
             now_data.rain = netatmo.rain();
@@ -218,7 +225,7 @@ impl DataSource {
             now_data.pressure = netatmo.pressure();
         }
 
-        if let Ok(purple) = self.purple.get().await {
+        if let Ok(purple) = self.purple.get(&state).await {
             now_data.aqi = purple
         }
 

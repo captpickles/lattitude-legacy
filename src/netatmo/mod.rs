@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 use crate::netatmo::station_data::Envelope;
-use crate::state::{state, update_state};
+use crate::state::{state, State, update_state};
 use serde::Deserialize;
 use serde_json::Value;
 use crate::accuweather::daily_forecast::Snow;
@@ -19,8 +19,8 @@ pub struct RefreshedToken {
     refresh_token: String,
 }
 
-pub async fn get_client() -> Result<NetatmoClient, anyhow::Error> {
-    let state = state().netatmo;
+pub async fn get_client(state: &State) -> Result<NetatmoClient, anyhow::Error> {
+    let state = &state.netatmo;
 
     let client = reqwest::Client::new();
     let result = client
