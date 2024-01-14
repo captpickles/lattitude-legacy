@@ -192,19 +192,11 @@ impl DataSource {
     }
 
     async fn get_daily_forecast(&self, state: &State) -> Result<Vec<DailyForecast>, anyhow::Error> {
-        if let Some(forecast) = self.accuweather_daily.get(&state).await? {
-            Ok(forecast)
-        } else {
-            Ok(vec![])
-        }
+        Ok(self.accuweather_daily.get(&state).await?.unwrap_or(vec![]))
     }
 
     async fn get_hourly_forecast(&self, state: &State) -> Result<Vec<HourlyForecast>, anyhow::Error> {
-        if let Some(forecast) = self.accuweather_hourly.get(&state).await? {
-            Ok(forecast)
-        } else {
-            Ok(vec![])
-        }
+        Ok(self.accuweather_hourly.get(&state).await?.unwrap_or(vec![]))
     }
 
     async fn get_now(&self, state: &State) -> Result<NowData, anyhow::Error> {
