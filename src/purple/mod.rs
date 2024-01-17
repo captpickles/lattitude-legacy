@@ -1,7 +1,5 @@
-use clap::Parser;
-use crate::accuweather::daily_forecast::Snow;
 use crate::purple::purple_data::Envelope;
-use crate::state::{state, State};
+use crate::state::PurpleState;
 
 mod purple_data;
 
@@ -14,14 +12,12 @@ impl PurpleClient {
         Self {}
     }
 
-    pub async fn get_aqi(&self, state: &State) -> Result<Aqi, anyhow::Error> {
-        let state = &state.purple;
-
-        let url = format!("{}/{}", GET_SENSOR_DATA_URL, state.sensor_index);
+    pub async fn get_aqi(&self, purple: &PurpleState) -> Result<Aqi, anyhow::Error> {
+        let url = format!("{}/{}", GET_SENSOR_DATA_URL, purple.sensor_index);
         let response = reqwest::Client::new()
             .get(url)
             .query(&[("fields", "pm2.5,pm2.5_60minute,pm2.5_6hour,pm2.5_24hour")])
-            .header("X-API-KEY", &state.api_key)
+            .header("X-API-KEY", &purple.api_key)
             .send()
             .await?;
 

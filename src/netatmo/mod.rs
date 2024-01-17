@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 use crate::netatmo::station_data::Envelope;
-use crate::state::{state, State, update_state};
+use crate::state::{NetatmoState, state, State, update_state};
 use serde::Deserialize;
 use serde_json::Value;
 use crate::accuweather::daily_forecast::Snow;
@@ -19,25 +19,23 @@ pub struct RefreshedToken {
     refresh_token: String,
 }
 
-pub async fn get_client(state: &State) -> Result<NetatmoClient, anyhow::Error> {
-    let state = &state.netatmo;
-
+pub async fn get_client(netatmo: &NetatmoState) -> Result<NetatmoClient, anyhow::Error> {
     let client = reqwest::Client::new();
     let result = client
         .post(TOKEN_URL)
         .form(&[
             ("grant_type", "refresh_token"),
-            ("refresh_token", &state.refresh_token),
-            ("client_id", &state.client_id),
-            ("client_secret", &state.client_secret),
+            ("refresh_token", &netatmo.refresh_token),
+            ("client_id", &netatmo.client_id),
+            ("client_secret", &netatmo.client_secret),
         ])
         .send()
         .await?;
 
     let refreshed: RefreshedToken = result.json().await?;
 
-    if state.refresh_token != refreshed.refresh_token {
-        update_state(|update| update.netatmo.refresh_token = refreshed.refresh_token);
+    if netatmo.refresh_token != refreshed.refresh_token {
+        update_state(|update| update.netatmo.as_mut().unwrap().refresh_token = refreshed.refresh_token);
     }
 
     Ok(NetatmoClient {

@@ -1,7 +1,6 @@
 use std::hash::{Hash, Hasher};
 use chrono::{DateTime, Local};
 use serde::Deserialize;
-use crate::accuweather::daily_forecast::Snow;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Envelope(pub Vec<HourlyForecast>);

@@ -1,6 +1,6 @@
 use crate::graphics::{Color, Graphics};
 use anyhow::Error;
-use embedded_graphics::pixelcolor::{BinaryColor, Gray4};
+use embedded_graphics::pixelcolor::BinaryColor;
 
 pub trait Paint {
     fn paint<const WIDTH: usize, const HEIGHT: usize>(

@@ -11,7 +11,6 @@ use bmp::Image;
 use chrono::{DateTime, Datelike, Local, Timelike, Weekday, Utc};
 use glyph_brush_layout::{HorizontalAlign, VerticalAlign};
 use std::env;
-use crate::graphics::Darkness::Dark;
 
 pub const WIDTH: usize = 1404;
 pub const HEIGHT: usize = 1872;
@@ -134,11 +133,15 @@ impl<'p, P: Paint> Display<'p, P> {
 
     pub fn draw_data_screen(&mut self, data: &DisplayData, time: DateTime<Utc>) -> Result<(), anyhow::Error> {
         let viewport = self.graphics.viewport((10, 20), (1400, 300));
-        self.current(viewport, &data.now, &data.birds)?;
+        if data.now.is_some() && data.birds.is_some() {
+            self.current(viewport, &data.now.as_ref().unwrap(), &data.birds.as_ref().unwrap())?;
+        }
 
         let viewport = self.graphics.default_viewport().shift_down(430);
 
-        self.hourly_forecast(viewport, &data.hourly_forecast)?;
+        if data.hourly_forecast.is_some() {
+            self.hourly_forecast(viewport, &data.hourly_forecast.as_ref().unwrap())?;
+        }
 
         self.daily_forecast(&data)?;
 
@@ -289,14 +292,18 @@ impl<'p, P: Paint> Display<'p, P> {
     fn daily_forecast(&self, data: &DisplayData) -> Result<(), anyhow::Error> {
         let mut viewport = self.graphics.default_viewport().shift_down(640);
 
-        for (i, forecast) in data.daily_forecast.iter().enumerate() {
-            if i != 0 {
-                viewport = viewport.shift_down(220);
-                viewport.hline((10, 0), WIDTH - 20, Thickness::Medium, Color::Gray13);
-                viewport.hline((180, 0), WIDTH - 360, Thickness::Medium, Color::Gray8);
-                viewport = viewport.shift_down(30);
+        if data.daily_forecast.is_some() {
+            for (i, forecast) in data.daily_forecast.as_ref().unwrap().iter().enumerate() {
+                if i != 0 {
+                    viewport = viewport.shift_down(220);
+                    viewport.hline((10, 0), WIDTH - 20, Thickness::Medium, Color::Gray13);
+                    viewport.hline((180, 0), WIDTH - 360, Thickness::Medium, Color::Gray8);
+                    viewport = viewport.shift_down(30);
+                }
+                if data.events.is_some() {
+                    self.day_forecast(viewport, forecast, &data.events.as_ref().unwrap())?;
+                }
             }
-            self.day_forecast(viewport, forecast, &data.events)?;
         }
         Ok(())
     }

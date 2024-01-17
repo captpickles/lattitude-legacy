@@ -1,11 +1,9 @@
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
 use crate::data::DataSource;
 use crate::display::Display;
 use crate::paint::Paint;
 use clap::{Args, Parser, Subcommand};
 use std::time::Duration;
-use chrono::{Local, Utc};
+use chrono::Utc;
 use crate::birdnet::BirdNetClient;
 use crate::state::state;
 
@@ -80,7 +78,7 @@ pub struct ScreenCommand {}
 impl ScreenCommand {
     pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error> {
         let state = state();
-        let ds = DataSource::new();
+        let ds = DataSource::new(&state);
         let data = ds.get(&state).await?;
 
         let mut display = Display::new(paint);
@@ -102,7 +100,7 @@ impl LoopCommand {
         let mut display = Display::new(paint);
         let _ = display.draw_splash_screen();
 
-        let ds = DataSource::new();
+        let ds = DataSource::new(&state);
 
         let mut prev_data = None;
 
@@ -138,10 +136,11 @@ impl LoopCommand {
 pub struct TestCommand;
 
 impl TestCommand {
-    pub async fn run<P: Paint>(&self, paint: &mut P) -> Result<(), anyhow::Error> {
+    pub async fn run<P: Paint>(&self, _paint: &mut P) -> Result<(), anyhow::Error> {
         let state = state();
+        let birdnet = state.birdnet.as_ref().unwrap();
         let client = BirdNetClient::new();
-        client.recent_detections(&state).await?;
+        client.recent_detections(birdnet).await?;
         Ok(())
     }
 }

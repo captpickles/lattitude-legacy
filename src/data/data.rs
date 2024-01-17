@@ -3,16 +3,15 @@ use crate::accuweather::hourly_forecast::HourlyForecast;
 use crate::calendar::Event;
 use crate::netatmo::{Humidity, Pressure, Rain, Temperature, Wind};
 use crate::purple::Aqi;
-use chrono::{DateTime, Utc};
 
 #[derive(PartialEq)]
 pub struct DisplayData {
     //pub time: DateTime<Utc>,
-    pub now: NowData,
-    pub daily_forecast: Vec<DailyForecast>,
-    pub hourly_forecast: Vec<HourlyForecast>,
-    pub events: Vec<Event>,
-    pub birds: Vec<String>,
+    pub now: Option<NowData>,
+    pub daily_forecast: Option<Vec<DailyForecast>>,
+    pub hourly_forecast: Option<Vec<HourlyForecast>>,
+    pub events: Option<Vec<Event>>,
+    pub birds: Option<Vec<String>>,
 }
 
 #[derive(PartialEq)]

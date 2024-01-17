@@ -5,18 +5,24 @@ use std::sync::RwLock;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct State {
-    pub location: LocationState,
-    pub netatmo: NetatmoState,
-    pub purple: PurpleState,
-    pub accuweather: AccuWeatherState,
-    pub calendar: CalendarState,
-    pub birdnet: BirdNetState,
+    pub location: Option<LocationState>,
+    pub netatmo: Option<NetatmoState>,
+    pub purple: Option<PurpleState>,
+    pub accuweather: Option<AccuWeatherState>,
+    pub calendar: Option<CalendarState>,
+    pub birdnet: Option<BirdNetState>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LocationState {
     pub lat: f64,
     pub lon: f64,
+}
+
+impl LocationState {
+    pub fn location_key(&self) -> String {
+        format!("{},{}", &self.lat, &self.lon)
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

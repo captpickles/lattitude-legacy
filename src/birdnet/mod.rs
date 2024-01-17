@@ -1,8 +1,7 @@
 mod detections;
 
-use serde_json::Value;
 use crate::birdnet::detections::Envelope;
-use crate::state::{state, State};
+use crate::state::BirdNetState;
 
 const BASE_URL: &str = "https://app.birdweather.com/api/v1/stations";
 
@@ -18,9 +17,9 @@ impl BirdNetClient {
         }
     }
 
-    pub async fn recent_detections(&self, state: &State) -> Result<Vec<String>, anyhow::Error> {
+    pub async fn recent_detections(&self, birdnet: &BirdNetState) -> Result<Vec<String>, anyhow::Error> {
         let data: Envelope = reqwest::Client::new()
-            .get(format!("{}/{}/detections", BASE_URL, &state.birdnet.token) )
+            .get(format!("{}/{}/detections", BASE_URL, &birdnet.token) )
             /*
             .query(&[
                 (
