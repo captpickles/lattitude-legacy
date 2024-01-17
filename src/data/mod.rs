@@ -10,21 +10,23 @@ use std::cell::{RefCell};
 use std::future::Future;
 use std::pin::Pin;
 use crate::birdnet::BirdNetClient;
-use crate::state::{BirdNetState, State};
+use crate::state::{AccuWeatherState, BirdNetState, CalendarState, LocationState, NetatmoState, PurpleState, State};
 
 #[allow(clippy::module_inception)]
 pub mod data;
 
 pub struct CachedData<T, U> {
     data: RefCell<Option<T>>,
+    state: Box<dyn Fn(State) -> U>,
     as_of: RefCell<Option<DateTime<Utc>>>,
     fetch: Box<dyn Fn(U) -> Pin<Box<dyn Future<Output = Result<T, anyhow::Error>>>>>,
     cadence: Box<dyn Fn() -> Duration>,
 }
 
 impl<T: Clone, U> CachedData<T, U> {
-    pub async fn get(&self, state: U) -> Result<Option<T>, anyhow::Error> {
+    pub async fn get(&self, state: State) -> Result<Option<T>, anyhow::Error> {
         if self.needs_fetch() {
+            let state = (self.state)(state);
             let data = (self.fetch)(state).await.map(|inner| Some(inner))?;
             self.as_of.borrow_mut().replace(Utc::now());
             *self.data.borrow_mut() = data;
@@ -48,20 +50,23 @@ impl<T: Clone, U> CachedData<T, U> {
 }
 
 pub struct DataSource {
-    calendar: Option<CachedData<Vec<Event>, State>>,
-    netatmo: Option<CachedData<NetatmoData, State>>,
-    purple: Option<CachedData<Aqi, State>>,
-    accuweather_daily: Option<CachedData<Vec<DailyForecast>, State>>,
-    accuweather_hourly: Option<CachedData<Vec<HourlyForecast>, State>>,
-    birdnet: Option<CachedData<Vec<String>, State>>,
+    calendar: Option<CachedData<Vec<Event>, CalendarState>>,
+    netatmo: Option<CachedData<NetatmoData, NetatmoState>>,
+    purple: Option<CachedData<Aqi, PurpleState>>,
+    accuweather_daily: Option<CachedData<Vec<DailyForecast>, (LocationState, AccuWeatherState)>>,
+    accuweather_hourly: Option<CachedData<Vec<HourlyForecast>, (LocationState, AccuWeatherState)>>,
+    birdnet: Option<CachedData<Vec<String>, BirdNetState>>,
 }
 
 fn birdnet_cadence() -> Duration {
     Duration::minutes(10)
 }
 
-fn fetch_birdnet(state: State) -> Pin<Box<dyn Future<Output = Result<Vec<String>, anyhow::Error>>>> {
-    let birdnet = state.birdnet.unwrap().clone();
+fn birdnet_state(state: State) -> BirdNetState {
+    state.birdnet.unwrap().clone()
+}
+
+fn fetch_birdnet(birdnet: BirdNetState) -> Pin<Box<dyn Future<Output = Result<Vec<String>, anyhow::Error>>>> {
     Box::pin(async move {
         println!("fetch birdnet");
         let client = BirdNetClient::new();
@@ -70,12 +75,15 @@ fn fetch_birdnet(state: State) -> Pin<Box<dyn Future<Output = Result<Vec<String>
     })
 }
 
+fn calendar_state(state: State) -> CalendarState {
+    state.calendar.unwrap().clone()
+}
+
 fn calendar_cadence() -> Duration {
     Duration::days(1)
 }
 
-fn fetch_calendar(state: State) -> Pin<Box<dyn Future<Output = Result<Vec<Event>, anyhow::Error>>>> {
-    let calendar = state.calendar.unwrap().clone();
+fn fetch_calendar(calendar: CalendarState) -> Pin<Box<dyn Future<Output = Result<Vec<Event>, anyhow::Error>>>> {
     Box::pin(async move {
         println!("fetch calendar");
         let client = calendar::CalendarClient::new();
@@ -88,8 +96,11 @@ fn netatmo_cadence() -> Duration {
     Duration::minutes(15)
 }
 
-fn fetch_netatmo(state: State) -> Pin<Box<dyn Future<Output = Result<NetatmoData, anyhow::Error>>>> {
-    let netatmo = state.netatmo.unwrap().clone();
+fn netatmo_state(state: State) -> NetatmoState {
+    state.netatmo.unwrap().clone()
+}
+
+fn fetch_netatmo(netatmo: NetatmoState) -> Pin<Box<dyn Future<Output = Result<NetatmoData, anyhow::Error>>>> {
     Box::pin(async move {
         println!("fetch netatmo");
         let netatmo_client = netatmo::get_client(&netatmo).await?;
@@ -102,8 +113,11 @@ fn purple_cadence() -> Duration {
     Duration::hours(2)
 }
 
-fn fetch_purple(state: State) -> Pin<Box<dyn Future<Output = Result<Aqi, anyhow::Error>>>> {
-    let purple = state.purple.unwrap().clone();
+fn purple_state(state: State) -> PurpleState {
+    state.purple.unwrap().clone()
+}
+
+fn fetch_purple(purple: PurpleState) -> Pin<Box<dyn Future<Output = Result<Aqi, anyhow::Error>>>> {
     Box::pin(async move {
         println!("fetch purple");
         let purple_client = purple::PurpleClient::new();
@@ -116,10 +130,12 @@ pub fn accuweather_cadence() -> Duration {
     Duration::minutes(30)
 }
 
-fn fetch_accuweather_daily_forecast(state: State
+fn accuweather_state(state: State) -> (LocationState, AccuWeatherState) {
+    (state.location.unwrap().clone(), state.accuweather.unwrap().clone())
+}
+
+fn fetch_accuweather_daily_forecast((location, accuweather): (LocationState, AccuWeatherState)
 ) -> Pin<Box<dyn Future<Output = Result<Vec<DailyForecast>, anyhow::Error>>>> {
-    let accuweather = state.accuweather.unwrap().clone();
-    let location = state.location.unwrap().clone();
     Box::pin(async move {
         println!("fetch accuweather");
         let client = accuweather::AccuWeatherClient::new();
@@ -129,10 +145,8 @@ fn fetch_accuweather_daily_forecast(state: State
     })
 }
 
-fn fetch_accuweather_hourly_forecast(state: State
+fn fetch_accuweather_hourly_forecast((location, accuweather): (LocationState, AccuWeatherState)
 ) -> Pin<Box<dyn Future<Output = Result<Vec<HourlyForecast>, anyhow::Error>>>> {
-    let accuweather = state.accuweather.unwrap().clone();
-    let location = state.location.unwrap().clone();
     Box::pin(async move {
         println!("fetch accuweather hourly");
         let client = accuweather::AccuWeatherClient::new();
@@ -147,36 +161,42 @@ impl DataSource {
         Self {
             birdnet: state.birdnet.as_ref().map(|_| CachedData {
                 data: RefCell::new(None),
+                state: Box::new(birdnet_state),
                 as_of: RefCell::new(None),
                 fetch: Box::new(fetch_birdnet),
                 cadence: Box::new(birdnet_cadence),
             }),
             calendar: state.calendar.as_ref().map(|_| CachedData {
                 data: RefCell::new(None),
+                state: Box::new(calendar_state),
                 as_of: RefCell::new(None),
                 fetch: Box::new(fetch_calendar),
                 cadence: Box::new(calendar_cadence),
             }),
             netatmo: state.netatmo.as_ref().map(|_| CachedData {
                 data: RefCell::new(None),
+                state: Box::new(netatmo_state),
                 as_of: RefCell::new(None),
                 fetch: Box::new(fetch_netatmo),
                 cadence: Box::new(netatmo_cadence),
             }),
             purple:state.purple.as_ref().map(|_| CachedData {
                 data: RefCell::new(None),
+                state: Box::new(purple_state),
                 as_of: RefCell::new(None),
                 fetch: Box::new(fetch_purple),
                 cadence: Box::new(purple_cadence),
             }),
             accuweather_daily: state.accuweather.as_ref().map(|_| CachedData {
                 data: RefCell::new(None),
+                state: Box::new(accuweather_state),
                 as_of: RefCell::new(None),
                 fetch: Box::new(fetch_accuweather_daily_forecast),
                 cadence: Box::new(accuweather_cadence),
             }),
             accuweather_hourly: state.accuweather.as_ref().map(|_| CachedData {
                 data: RefCell::new(None),
+                state: Box::new(accuweather_state),
                 as_of: RefCell::new(None),
                 fetch: Box::new(fetch_accuweather_hourly_forecast),
                 cadence: Box::new(accuweather_cadence),
