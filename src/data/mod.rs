@@ -38,11 +38,7 @@ impl<T: Clone, U> CachedData<T, U> {
     pub fn needs_fetch(&self) -> bool {
         if let Some(as_of) = &*self.as_of.borrow() {
             let age = Utc::now() - as_of;
-            if age > (self.cadence)() {
-                true
-            } else {
-                false
-            }
+            age > (self.cadence)()
         } else {
             true
         }
